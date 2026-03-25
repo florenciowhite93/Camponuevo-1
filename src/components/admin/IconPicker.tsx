@@ -27,6 +27,23 @@ function normalizeSvg(svg: string): string {
   return normalized;
 }
 
+function normalizeSvgForDisplay(svg: string): string {
+  if (!svg) return "";
+  
+  let normalized = svg.trim();
+  
+  normalized = normalized.replace(/<svg/g, '<svg width="96" height="96" viewBox="0 0 24 24" style="width:96px;height:96px;"');
+  
+  normalized = normalized.replace(/width="[^"]*"/gi, 'width="96"');
+  normalized = normalized.replace(/height="[^"]*"/gi, 'height="96"');
+  
+  if (!normalized.includes('viewBox=')) {
+    normalized = normalized.replace('<svg', '<svg viewBox="0 0 24 24"');
+  }
+  
+  return normalized;
+}
+
 export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -86,8 +103,8 @@ export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
         {value ? (
           <>
             <div 
-              className="w-24 h-24 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:text-green-700"
-              dangerouslySetInnerHTML={{ __html: value }} 
+              className="w-24 h-24 flex items-center justify-center"
+              dangerouslySetInnerHTML={{ __html: normalizeSvgForDisplay(value) }} 
             />
             {onClear && (
               <button
