@@ -14,7 +14,7 @@ export function Footer() {
                 <svg viewBox="0 0 82.99 82.99" className="w-full h-full">
                   <defs>
                     <style>
-                      {`.cls-1 { fill: #0a92cf; } .cls-2 { fill: #03a84d; }`}
+                      {`.cls-1 { fill: #ffffff; } .cls-2 { fill: #ffffff; }`}
                     </style>
                   </defs>
                   <g>
@@ -23,7 +23,7 @@ export function Footer() {
                   </g>
                 </svg>
               </div>
-              <span className="text-2xl font-bold">Camponuevo</span>
+              <span className="text-2xl font-bold uppercase">Camponuevo</span>
             </div>
             <p className="text-gray-300 mb-6">
               Tu tienda agropecuaria de confianza para productos naturales, veterinarios y agrícolas.

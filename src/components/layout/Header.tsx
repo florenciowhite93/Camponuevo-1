@@ -229,7 +229,7 @@ export function Header({ cartCount = 0 }: HeaderProps) {
                   </g>
                 </svg>
               </div>
-              <span className="text-xl font-bold text-[#2d5a27]">Camponuevo</span>
+              <span className="text-xl font-bold text-[#2d5a27] uppercase">Camponuevo</span>
             </Link>
 
             {/* Desktop Nav */}
