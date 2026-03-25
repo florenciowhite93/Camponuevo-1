@@ -31,7 +31,7 @@ export default function NosotrosPage() {
 
       <main className="flex-1 pt-20">
       {/* Hero About */}
-      <section className="relative pb-24 overflow-hidden bg-[#2d5a27]">
+      <section className="relative py-12 overflow-hidden bg-[#2d5a27]">
         <div className="absolute inset-0 z-0">
           <Image 
             src="https://images.unsplash.com/photo-1595825852509-38257008cfce?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80" 

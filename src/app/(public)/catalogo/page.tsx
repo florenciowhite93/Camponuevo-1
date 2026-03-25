@@ -256,7 +256,7 @@ export default function CatalogoPage() {
       <Header cartCount={0} />
 
       <main className="flex-1 pt-20">
-      <div className="bg-[#2d5a27] pb-24 relative overflow-hidden">
+      <div className="bg-[#2d5a27] py-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-[#1b5e20] to-[#2d5a27] opacity-90"></div>
         <div className="container mx-auto px-4 relative z-10 text-center flex flex-col items-center justify-center">
           <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">Catálogo de Productos</h1>
