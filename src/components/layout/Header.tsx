@@ -248,6 +248,12 @@ export function Header({ cartCount = 0 }: HeaderProps) {
               </Link>
               <Link
                 href="/nosotros"
+                onClick={(e) => {
+                  if (window.location.pathname === '/nosotros') {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
               >
                 Nosotros
@@ -497,6 +503,12 @@ export function Header({ cartCount = 0 }: HeaderProps) {
               </Link>
               <Link
                 href="/nosotros"
+                onClick={(e) => {
+                  if (window.location.pathname === '/nosotros') {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 className="text-gray-700 hover:text-[#2d5a27] font-medium py-2"
               >
                 Nosotros

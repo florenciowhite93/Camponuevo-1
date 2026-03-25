@@ -56,7 +56,16 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/nosotros" className="text-gray-300 hover:text-white transition">
+                <Link 
+                  href="/nosotros" 
+                  onClick={(e) => {
+                    if (window.location.pathname === '/nosotros') {
+                      e.preventDefault();
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className="text-gray-300 hover:text-white transition"
+                >
                   Nosotros
                 </Link>
               </li>
