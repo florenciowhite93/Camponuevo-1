@@ -208,6 +208,22 @@ export function LandingEditor() {
     }
   };
 
+  const clearCategoriaIcono = async (categoriaId: string) => {
+    setCategorias((prev) =>
+      prev.map((c) => (c.id === categoriaId ? { ...c, icono_svg: "" } : c))
+    );
+    setEditingIcon(null);
+
+    const { error } = await supabase
+      .from("categorias")
+      .update({ icono_svg: "", updated_at: new Date().toISOString() })
+      .eq("id", categoriaId);
+
+    if (error) {
+      console.error("Error clearing icono:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -363,6 +379,7 @@ export function LandingEditor() {
           nombre={editingIcon.nombre}
           svg={editingIcon.svg}
           onSave={(svg) => updateCategoriaIcono(editingIcon.id, svg)}
+          onClear={() => clearCategoriaIcono(editingIcon.id)}
           onClose={() => setEditingIcon(null)}
         />
       )}
@@ -374,11 +391,13 @@ function IconEditorModal({
   nombre,
   svg,
   onSave,
+  onClear,
   onClose,
 }: {
   nombre: string;
   svg: string;
   onSave: (s: string) => void;
+  onClear: () => void;
   onClose: () => void;
 }) {
   const [svgCode, setSvgCode] = useState(svg);
@@ -387,21 +406,30 @@ function IconEditorModal({
     onSave(svgCode);
   };
 
+  const handleClear = () => {
+    setSvgCode("");
+    onClear();
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold">Editar Icono: {nombre}</h2>
+          <h2 className="text-xl font-bold">Icono: {nombre}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
         <div className="p-6">
-          <IconPicker value={svgCode} onChange={setSvgCode} />
+          <IconPicker 
+            value={svgCode} 
+            onChange={setSvgCode}
+            onClear={handleClear}
+          />
         </div>
         <div className="flex justify-end gap-3 p-6 border-t">
           <button onClick={onClose} className="px-6 py-3 border rounded-xl hover:bg-gray-100">
-            Cancelar
+            Cerrar
           </button>
           <button onClick={handleSave} className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700">
             Guardar
