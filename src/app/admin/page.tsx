@@ -78,6 +78,13 @@ export default function AdminPage() {
   const [showEditLabNameModal, setShowEditLabNameModal] = useState(false);
   const [editLabName, setEditLabName] = useState("");
 
+  const [showEditCatModal, setShowEditCatModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [categorySubcats, setCategorySubcats] = useState<any[]>([]);
+  const [catSearchTerm, setCatSearchTerm] = useState("");
+  const [showEditCatNameModal, setShowEditCatNameModal] = useState(false);
+  const [editCatName, setEditCatName] = useState("");
+
   const [showEditLabelModal, setShowEditLabelModal] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState<any>(null);
   const [labelProducts, setLabelProducts] = useState<any[]>([]);
@@ -431,6 +438,60 @@ export default function AdminPage() {
     if (!selectedSubcategory || !confirm(`¿Eliminar la subcategoría "${selectedSubcategory.nombre}"? Los productos no se eliminarán, solo se desasociarán.`)) return;
     await supabase.from("subcategorias").delete().eq("id", selectedSubcategory.id);
     setShowEditSubCatModal(false);
+    await fetchAllData();
+  };
+
+  // --- CATEGORÍAS: Gestión avanzada de subcategorías ---
+  const openEditCatModal = async (category: any) => {
+    setSelectedCategory(category);
+    setEditCatName(category.nombre);
+    setCategorySubcats([]);
+    setCatSearchTerm("");
+    setShowEditCatModal(true);
+    
+    const { data } = await supabase
+      .from("subcategorias")
+      .select("*")
+      .eq("categoria_id", category.id)
+      .order("nombre");
+    setCategorySubcats(data || []);
+  };
+
+  const addSubcategoryToCategory = async (subcatId: string) => {
+    const subcat = subcategorias.find(s => s.id === subcatId);
+    if (!subcat || !selectedCategory) return;
+
+    await supabase
+      .from("subcategorias")
+      .update({ categoria_id: selectedCategory.id })
+      .eq("id", subcatId);
+    
+    setCategorySubcats([...categorySubcats, subcat]);
+    await fetchAllData();
+  };
+
+  const removeSubcategoryFromCategory = async (subcatId: string) => {
+    await supabase
+      .from("subcategorias")
+      .update({ categoria_id: null })
+      .eq("id", subcatId);
+    
+    setCategorySubcats(categorySubcats.filter(s => s.id !== subcatId));
+    await fetchAllData();
+  };
+
+  const saveCategoryName = async () => {
+    if (!selectedCategory || !editCatName.trim()) return;
+    await supabase.from("categorias").update({ nombre: editCatName.trim() }).eq("id", selectedCategory.id);
+    setSelectedCategory({ ...selectedCategory, nombre: editCatName.trim() });
+    setCategorias(categorias.map(c => c.id === selectedCategory.id ? { ...c, nombre: editCatName.trim() } : c));
+    setShowEditCatNameModal(false);
+  };
+
+  const deleteCategoryAdvanced = async () => {
+    if (!selectedCategory || !confirm(`¿Eliminar la categoría "${selectedCategory.nombre}"? Las subcategorías no se eliminarán, solo se desasociarán.`)) return;
+    await supabase.from("categorias").delete().eq("id", selectedCategory.id);
+    setShowEditCatModal(false);
     await fetchAllData();
   };
 
@@ -842,9 +903,10 @@ export default function AdminPage() {
                     <div key={cat.id} className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-[#f1f8e9] flex items-center justify-center"><FolderTree size={20} className="text-[#2d5a27]" /></div>
-                        <span className="font-medium">{cat.nombre}</span>
+                        <button onClick={() => openEditCatModal(cat)} className="font-medium hover:text-[#2d5a27] transition text-left">{cat.nombre}</button>
                       </div>
                       <div className="flex gap-2">
+                        <button onClick={() => openEditCatModal(cat)} className="p-2 hover:bg-gray-100 rounded-lg" title="Gestionar subcategorías"><Layers size={18} className="text-[#2d5a27]" /></button>
                         <button onClick={() => openCategoryModal(cat)} className="p-2 hover:bg-gray-100 rounded-lg"><Edit2 size={18} className="text-gray-600" /></button>
                         <button onClick={() => deleteCategory(cat.id)} className="p-2 hover:bg-red-50 rounded-lg"><Trash2 size={18} className="text-red-500" /></button>
                       </div>
@@ -1589,6 +1651,81 @@ export default function AdminPage() {
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowEditLabelNameModal(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
               <button onClick={saveLabelName} className="flex-1 px-4 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition">Guardar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR CATEGORÍA (Gestión de subcategorías) */}
+      {showEditCatModal && selectedCategory && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowEditCatModal(false)} />
+          <div className="fixed inset-4 md:inset-auto md:top-4 md:left-1/2 md:-translate-x-1/2 md:right-4 md:bottom-4 bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden max-h-[calc(100vh-2rem)]">
+            <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+              <div>
+                <h2 className="text-xl font-bold">Editar Categoría</h2>
+                <button onClick={() => setShowEditCatNameModal(true)} 
+                  className="text-sm text-[#2d5a27] hover:underline mt-1">{selectedCategory.nombre} (clic para cambiar nombre)</button>
+              </div>
+              <button onClick={() => setShowEditCatModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Subcategorías en esta categoría</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto bg-gray-50 rounded-lg p-2">
+                  {categorySubcats.length > 0 ? categorySubcats.map((subcat) => (
+                    <div key={subcat.id} className="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
+                      <span className="text-sm font-medium truncate flex-1">{subcat.nombre}</span>
+                      <button onClick={() => removeSubcategoryFromCategory(subcat.id)} className="p-1 hover:bg-red-50 rounded text-red-500 ml-2">
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )) : <p className="text-sm text-gray-400 text-center py-4">No hay subcategorías en esta categoría</p>}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Agregar subcategorías</h4>
+                <input type="text" placeholder="Buscar subcategorías..." value={catSearchTerm} onChange={(e) => setCatSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                  {subcategorias.filter(s => 
+                    s.nombre?.toLowerCase().includes(catSearchTerm.toLowerCase()) && 
+                    s.categoria_id !== selectedCategory.id &&
+                    !categorySubcats.find(cs => cs.id === s.id)
+                  ).slice(0, 20).map((subcat) => (
+                    <div key={subcat.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                      onClick={() => addSubcategoryToCategory(subcat.id)}>
+                      <span className="text-sm font-medium truncate flex-1">{subcat.nombre}</span>
+                      <Plus size={16} className="text-[#2d5a27]" />
+                    </div>
+                  ))}
+                  {subcategorias.filter(s => s.nombre?.toLowerCase().includes(catSearchTerm.toLowerCase()) && s.categoria_id !== selectedCategory.id && !categorySubcats.find(cs => cs.id === s.id)).length === 0 && (
+                    <p className="text-sm text-gray-400 text-center py-4">No hay subcategorías disponibles</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex justify-between">
+              <button onClick={deleteCategoryAdvanced} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2">
+                <Trash2 size={16} /> Eliminar
+              </button>
+              <button onClick={() => setShowEditCatModal(false)} className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cerrar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR NOMBRE CATEGORÍA */}
+      {showEditCatNameModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowEditCatNameModal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[60] p-6">
+            <h3 className="text-lg font-bold mb-4">Editar Nombre de Categoría</h3>
+            <input type="text" value={editCatName} onChange={(e) => setEditCatName(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setShowEditCatNameModal(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+              <button onClick={saveCategoryName} className="flex-1 px-4 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition">Guardar</button>
             </div>
           </div>
         </>
