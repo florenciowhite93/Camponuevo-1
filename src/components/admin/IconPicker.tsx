@@ -59,10 +59,13 @@ export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
   return (
     <div className="space-y-4">
       {/* Preview grande */}
-      <div className="flex items-center justify-center h-32 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 relative">
+      <div className="flex items-center justify-center h-40 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 relative overflow-hidden">
         {value ? (
           <>
-            <div className="w-20 h-20 text-green-700" dangerouslySetInnerHTML={{ __html: value }} />
+            <div 
+              className="w-24 h-24 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:text-green-700"
+              dangerouslySetInnerHTML={{ __html: value }} 
+            />
             {onClear && (
               <button
                 onClick={onClear}
@@ -86,15 +89,15 @@ export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "border-2 border-dashed rounded-xl p-6 text-center transition cursor-pointer",
+          "border-2 border-dashed rounded-xl p-4 text-center transition cursor-pointer",
           isDragging
             ? "border-green-500 bg-green-50"
             : "border-gray-300 hover:border-green-400"
         )}
       >
-        <Upload size={24} className="mx-auto mb-2 text-gray-400" />
-        <p className="text-sm text-gray-600 mb-3">
-          Arrastra un archivo SVG aquí
+        <Upload size={20} className="mx-auto mb-2 text-gray-400" />
+        <p className="text-xs text-gray-600 mb-2">
+          Arrastrá un SVG o
         </p>
         <label className="inline-block cursor-pointer">
           <input
@@ -105,13 +108,12 @@ export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
             disabled={isUploading}
           />
           <span className={cn(
-            "inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition",
+            "inline-block px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium transition",
             isUploading && "opacity-50"
           )}>
-            {isUploading ? "Procesando..." : "Seleccionar archivo"}
+            {isUploading ? "Procesando..." : "seleccioná un archivo"}
           </span>
         </label>
-        <p className="text-xs text-gray-400 mt-3">Formatos: .svg</p>
       </div>
     </div>
   );
