@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, Save, Edit2, Eye, EyeOff, Check, ChevronDown } from "lucide-react";
+import { Save, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { IconPicker } from "@/components/admin/IconPicker";
 
 const supabase = createClient();
 
@@ -32,6 +33,7 @@ export function LandingEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingIcon, setEditingIcon] = useState<{ id: string; svg: string; nombre: string } | null>(null);
+  const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -61,7 +63,7 @@ export function LandingEditor() {
           if (seccion.tipo === "categorias") {
             configObj.categorias_seccion = {
               titulo: cfg?.titulo || "Nuestras Categorías",
-              categorias_ids: cfg?.categorias_ids || cfg?.categorias?.map((c: any) => c.categoria_id) || [],
+              categorias_ids: cfg?.categorias_ids || [],
             };
           }
           if (seccion.tipo === "productos") {
@@ -93,6 +95,7 @@ export function LandingEditor() {
   const saveConfig = async () => {
     if (!config) return;
     setSaving(true);
+    setSaveMessage(null);
 
     try {
       const seccionesRes = await supabase
@@ -104,35 +107,51 @@ export function LandingEditor() {
       const categoriaExistente = existentes.find((s) => s.tipo === "categorias");
       const productoExistente = existentes.find((s) => s.tipo === "productos");
 
+      const now = new Date().toISOString();
+
       if (categoriaExistente) {
-        await supabase
+        const { error } = await supabase
           .from("secciones_landing")
           .update({
             titulo: config.categorias_seccion.titulo,
-            config: { titulo: config.categorias_seccion.titulo, categorias_ids: config.categorias_seccion.categorias_ids },
+            config: {
+              titulo: config.categorias_seccion.titulo,
+              categorias_ids: config.categorias_seccion.categorias_ids,
+            },
+            updated_at: now,
           })
           .eq("id", categoriaExistente.id);
+
+        if (error) throw error;
       } else {
         await supabase.from("secciones_landing").insert({
           tipo: "categorias",
           titulo: config.categorias_seccion.titulo,
           activa: true,
           orden: 1,
-          config: { titulo: config.categorias_seccion.titulo, categorias_ids: config.categorias_seccion.categorias_ids },
+          config: {
+            titulo: config.categorias_seccion.titulo,
+            categorias_ids: config.categorias_seccion.categorias_ids,
+          },
         });
       }
 
       if (productoExistente) {
-        await supabase
+        const { error } = await supabase
           .from("secciones_landing")
           .update({
             titulo: config.productos_seccion.titulo,
             config: {
               titulo: config.productos_seccion.titulo,
-              subcategorias_ids: config.productos_seccion.subcategoria_id ? [config.productos_seccion.subcategoria_id] : [],
+              subcategorias_ids: config.productos_seccion.subcategoria_id
+                ? [config.productos_seccion.subcategoria_id]
+                : [],
             },
+            updated_at: now,
           })
           .eq("id", productoExistente.id);
+
+        if (error) throw error;
       } else {
         await supabase.from("secciones_landing").insert({
           tipo: "productos",
@@ -141,15 +160,18 @@ export function LandingEditor() {
           orden: 2,
           config: {
             titulo: config.productos_seccion.titulo,
-            subcategorias_ids: config.productos_seccion.subcategoria_id ? [config.productos_seccion.subcategoria_id] : [],
+            subcategorias_ids: config.productos_seccion.subcategoria_id
+              ? [config.productos_seccion.subcategoria_id]
+              : [],
           },
         });
       }
 
-      alert("Cambios guardados correctamente");
+      setSaveMessage({ type: "success", text: "Cambios guardados correctamente" });
+      await loadData();
     } catch (error) {
       console.error("Error saving:", error);
-      alert("Error al guardar");
+      setSaveMessage({ type: "error", text: "Error al guardar los cambios" });
     } finally {
       setSaving(false);
     }
@@ -173,7 +195,17 @@ export function LandingEditor() {
     );
     setEditingIcon(null);
 
-    await supabase.from("categorias").update({ icono_svg: newSvg }).eq("id", categoriaId);
+    const { error } = await supabase
+      .from("categorias")
+      .update({ icono_svg: newSvg, updated_at: new Date().toISOString() })
+      .eq("id", categoriaId);
+
+    if (error) {
+      console.error("Error updating icono:", error);
+      setSaveMessage({ type: "error", text: "Error al guardar el icono" });
+    } else {
+      setSaveMessage({ type: "success", text: "Icono guardado correctamente" });
+    }
   };
 
   if (loading) {
@@ -188,6 +220,20 @@ export function LandingEditor() {
 
   return (
     <div className="space-y-8">
+      {/* Mensaje de estado */}
+      {saveMessage && (
+        <div
+          className={cn(
+            "p-4 rounded-xl text-sm font-medium",
+            saveMessage.type === "success"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          )}
+        >
+          {saveMessage.text}
+        </div>
+      )}
+
       {/* Categorías Section */}
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <div className="mb-6">
@@ -231,7 +277,7 @@ export function LandingEditor() {
 
                 <button
                   onClick={() => setEditingIcon({ id: cat.id, svg: cat.icono_svg, nombre: cat.nombre })}
-                  className="w-12 h-12 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:border-green-400"
+                  className="w-12 h-12 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:border-green-400 transition"
                 >
                   {cat.icono_svg ? (
                     <div dangerouslySetInnerHTML={{ __html: cat.icono_svg }} className="w-7 h-7 text-green-700" />
@@ -296,7 +342,7 @@ export function LandingEditor() {
       <button
         onClick={saveConfig}
         disabled={saving}
-        className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-2"
+        className="w-full py-4 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold rounded-xl transition flex items-center justify-center gap-2"
       >
         {saving ? (
           <>
@@ -337,38 +383,27 @@ function IconEditorModal({
 }) {
   const [svgCode, setSvgCode] = useState(svg);
 
+  const handleSave = () => {
+    onSave(svgCode);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold">Editar Icono: {nombre}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-            <X size={24} />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Código SVG</label>
-            <textarea
-              value={svgCode}
-              onChange={(e) => setSvgCode(e.target.value)}
-              className="w-full h-32 px-4 py-3 font-mono text-sm bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="<svg viewBox='0 0 24 24' ...>"
-            />
-          </div>
-          <div className="flex items-center justify-center h-20 bg-gray-50 rounded-xl border">
-            {svgCode ? (
-              <div className="w-16 h-16 text-green-700" dangerouslySetInnerHTML={{ __html: svgCode }} />
-            ) : (
-              <span className="text-gray-400">Sin icono</span>
-            )}
-          </div>
+        <div className="p-6">
+          <IconPicker value={svgCode} onChange={setSvgCode} />
         </div>
         <div className="flex justify-end gap-3 p-6 border-t">
           <button onClick={onClose} className="px-6 py-3 border rounded-xl hover:bg-gray-100">
             Cancelar
           </button>
-          <button onClick={() => onSave(svgCode)} className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700">
+          <button onClick={handleSave} className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700">
             Guardar
           </button>
         </div>
