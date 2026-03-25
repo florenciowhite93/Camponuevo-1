@@ -10,40 +10,92 @@ import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
 
-const categorias: Categoria[] = [
-  { id: "1", nombre: "Veterinaria", icono_svg: "", orden: 1 },
-  { id: "2", nombre: "Bovinos", icono_svg: "", orden: 2 },
-  { id: "3", nombre: "Ovinos", icono_svg: "", orden: 3 },
-  { id: "4", nombre: "Equinos", icono_svg: "", orden: 4 },
-];
-
 export default function HomePage() {
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [productosDestacados, setProductosDestacados] = useState<Producto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [categoriasTitulo, setCategoriasTitulo] = useState("Nuestras Categorías");
+  const [productosTitulo, setProductosTitulo] = useState("Catálogo Productos Destacados");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProductosDestacados();
+    loadData();
   }, []);
 
-  const fetchProductosDestacados = async () => {
+  const loadData = async () => {
     try {
-      const { data, error } = await supabase
+      const [seccionesRes, categoriasRes] = await Promise.all([
+        supabase.from("secciones_landing").select("*").in("tipo", ["categorias", "productos"]),
+        supabase.from("categorias").select("*").order("orden"),
+      ]);
+
+      if (categoriasRes.data) {
+        setCategorias(categoriasRes.data);
+      }
+
+      if (seccionesRes.data) {
+        seccionesRes.data.forEach((seccion) => {
+          const cfg = seccion.config as any;
+          if (seccion.tipo === "categorias") {
+            if (cfg?.titulo) setCategoriasTitulo(cfg.titulo);
+            if (cfg?.categorias_ids && cfg.categorias_ids.length > 0) {
+              const catsSeleccionadas = categoriasRes.data?.filter((c) =>
+                cfg.categorias_ids.includes(c.id)
+              );
+              if (catsSeleccionadas) setCategorias(catsSeleccionadas);
+            }
+          }
+          if (seccion.tipo === "productos") {
+            if (cfg?.titulo) setProductosTitulo(cfg.titulo);
+            if (cfg?.subcategorias_ids && cfg.subcategorias_ids.length > 0) {
+              fetchProductosPorSubcategoria(cfg.subcategorias_ids[0]);
+            } else {
+              fetchProductosTodos();
+            }
+          }
+        });
+      } else {
+        fetchProductosTodos();
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
+      fetchProductosTodos();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProductosTodos = async () => {
+    try {
+      const { data } = await supabase
         .from("productos")
         .select(`*, laboratorio:laboratorios(nombre)`)
         .eq("visible", true)
         .limit(8);
-
       if (data) {
-        const productos = data.map((p: any) => ({
-          ...p,
-          laboratorio_nombre: p.laboratorio?.nombre,
-        }));
-        setProductosDestacados(productos);
+        setProductosDestacados(data.map((p: any) => ({ ...p, laboratorio_nombre: p.laboratorio?.nombre })));
       }
     } catch (error) {
-      console.error("Error fetching productos destacados:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Error fetching productos:", error);
+    }
+  };
+
+  const fetchProductosPorSubcategoria = async (subcategoriaId: string) => {
+    try {
+      const { data } = await supabase
+        .from("productos")
+        .select(`*, laboratorio:laboratorios(nombre)`)
+        .eq("visible", true)
+        .limit(20);
+
+      if (data) {
+        const filtrados = data
+          .filter((p: any) => p.subcategorias_ids?.includes(subcategoriaId))
+          .slice(0, 8)
+          .map((p: any) => ({ ...p, laboratorio_nombre: p.laboratorio?.nombre }));
+        setProductosDestacados(filtrados);
+      }
+    } catch (error) {
+      console.error("Error fetching productos:", error);
     }
   };
 
@@ -95,7 +147,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative z-10">
             <div className="text-center mb-16">
               <span className="text-sm font-bold tracking-widest text-[#4caf50] uppercase mb-2 block">Explora</span>
-              <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900">Nuestras Categorías</h2>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900">{categoriasTitulo}</h2>
             </div>
 
             <div className="flex flex-wrap justify-center gap-8">
@@ -107,7 +159,14 @@ export default function HomePage() {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                    <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
+                    {cat.icono_svg ? (
+                      <div
+                        className="w-12 h-12 text-[#2d5a27]"
+                        dangerouslySetInnerHTML={{ __html: cat.icono_svg }}
+                      />
+                    ) : (
+                      <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
+                    )}
                   </div>
                   <h3 className="text-xl font-bold mb-2 text-gray-800">{cat.nombre}</h3>
                   <p className="text-gray-500 text-sm">Ver productos</p>
@@ -123,7 +182,7 @@ export default function HomePage() {
             <div className="flex flex-col md:flex-row justify-between items-end mb-14 border-b border-gray-200 pb-6">
               <div>
                 <span className="text-sm font-bold tracking-widest text-[#4caf50] uppercase mb-2 block">Catálogo</span>
-                <h2 className="text-4xl font-extrabold text-gray-900">Productos Destacados</h2>
+                <h2 className="text-4xl font-extrabold text-gray-900">{productosTitulo}</h2>
               </div>
               <Link
                 href="/catalogo"
@@ -134,7 +193,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {isLoading ? (
+            {loading ? (
               <div className="flex justify-center items-center py-16">
                 <i className="fas fa-circle-notch fa-spin text-4xl text-[#2d5a27]"></i>
               </div>

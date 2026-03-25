@@ -1,319 +1,377 @@
 "use client";
 
-import { useState } from "react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Edit2, Eye, Trash2, Plus, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { X, Save, Edit2, Eye, EyeOff, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
-interface SeccionLanding {
+const supabase = createClient();
+
+interface Categoria {
   id: string;
-  tipo: "hero" | "categorias" | "productos" | "testimonios" | "newsletter";
-  titulo: string;
-  activa: boolean;
+  nombre: string;
+  icono_svg: string;
+  subcategorias?: { id: string; nombre: string }[];
 }
 
-const tiposSeccion = [
-  { id: "hero", nombre: "Hero", descripcion: "Sección principal con imagen de fondo" },
-  { id: "categorias", nombre: "Categorías", descripcion: "Grid de categorías" },
-  { id: "productos", nombre: "Productos Destacados", descripcion: "Carrusel de productos" },
-  { id: "testimonios", nombre: "Testimonios", descripcion: "Reseñas de clientes" },
-  { id: "newsletter", nombre: "Newsletter", descripcion: "Formulario de suscripción" },
-];
-
-interface SortableSectionProps {
-  seccion: SeccionLanding;
-  onEdit: () => void;
-  onDelete: () => void;
-  onToggle: () => void;
+interface HomeConfig {
+  categorias_seccion: {
+    titulo: string;
+    categorias_ids: string[];
+  };
+  productos_seccion: {
+    titulo: string;
+    subcategoria_id: string;
+  };
 }
 
-function SortableSection({ seccion, onEdit, onDelete, onToggle }: SortableSectionProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: seccion.id });
+export function LandingEditor() {
+  const [config, setConfig] = useState<HomeConfig | null>(null);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [subcategorias, setSubcategorias] = useState<{ id: string; nombre: string; categoria_nombre: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editingIcon, setEditingIcon] = useState<{ id: string; svg: string; nombre: string } | null>(null);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [categoriasRes, subcategoriasRes] = await Promise.all([
+        supabase.from("categorias").select("*, subcategorias(id, nombre)").order("orden"),
+        supabase.from("subcategorias").select("*, categoria:categorias(nombre)").order("nombre"),
+      ]);
+
+      const seccionesRes = await supabase
+        .from("secciones_landing")
+        .select("*")
+        .in("tipo", ["categorias", "productos"])
+        .order("orden");
+
+      if (categoriasRes.data) setCategorias(categoriasRes.data);
+      if (subcategoriasRes.data) setSubcategorias(subcategoriasRes.data);
+
+      if (seccionesRes.data && seccionesRes.data.length > 0) {
+        const configObj: HomeConfig = {
+          categorias_seccion: { titulo: "Nuestras Categorías", categorias_ids: [] },
+          productos_seccion: { titulo: "Catálogo Productos Destacados", subcategoria_id: "" },
+        };
+
+        seccionesRes.data.forEach((seccion) => {
+          const cfg = seccion.config as any;
+          if (seccion.tipo === "categorias") {
+            configObj.categorias_seccion = {
+              titulo: cfg?.titulo || "Nuestras Categorías",
+              categorias_ids: cfg?.categorias_ids || cfg?.categorias?.map((c: any) => c.categoria_id) || [],
+            };
+          }
+          if (seccion.tipo === "productos") {
+            configObj.productos_seccion = {
+              titulo: cfg?.titulo || "Catálogo Productos Destacados",
+              subcategoria_id: cfg?.subcategorias_ids?.[0] || cfg?.subcategoria_id || "",
+            };
+          }
+        });
+
+        setConfig(configObj);
+      } else {
+        setConfig({
+          categorias_seccion: { titulo: "Nuestras Categorías", categorias_ids: [] },
+          productos_seccion: { titulo: "Catálogo Productos Destacados", subcategoria_id: "" },
+        });
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const saveConfig = async () => {
+    if (!config) return;
+    setSaving(true);
+
+    try {
+      const seccionesRes = await supabase
+        .from("secciones_landing")
+        .select("id, tipo")
+        .in("tipo", ["categorias", "productos"]);
+
+      const existentes = seccionesRes.data || [];
+      const categoriaExistente = existentes.find((s) => s.tipo === "categorias");
+      const productoExistente = existentes.find((s) => s.tipo === "productos");
+
+      if (categoriaExistente) {
+        await supabase
+          .from("secciones_landing")
+          .update({
+            titulo: config.categorias_seccion.titulo,
+            config: { titulo: config.categorias_seccion.titulo, categorias_ids: config.categorias_seccion.categorias_ids },
+          })
+          .eq("id", categoriaExistente.id);
+      } else {
+        await supabase.from("secciones_landing").insert({
+          tipo: "categorias",
+          titulo: config.categorias_seccion.titulo,
+          activa: true,
+          orden: 1,
+          config: { titulo: config.categorias_seccion.titulo, categorias_ids: config.categorias_seccion.categorias_ids },
+        });
+      }
+
+      if (productoExistente) {
+        await supabase
+          .from("secciones_landing")
+          .update({
+            titulo: config.productos_seccion.titulo,
+            config: {
+              titulo: config.productos_seccion.titulo,
+              subcategorias_ids: config.productos_seccion.subcategoria_id ? [config.productos_seccion.subcategoria_id] : [],
+            },
+          })
+          .eq("id", productoExistente.id);
+      } else {
+        await supabase.from("secciones_landing").insert({
+          tipo: "productos",
+          titulo: config.productos_seccion.titulo,
+          activa: true,
+          orden: 2,
+          config: {
+            titulo: config.productos_seccion.titulo,
+            subcategorias_ids: config.productos_seccion.subcategoria_id ? [config.productos_seccion.subcategoria_id] : [],
+          },
+        });
+      }
+
+      alert("Cambios guardados correctamente");
+    } catch (error) {
+      console.error("Error saving:", error);
+      alert("Error al guardar");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const tipoInfo = tiposSeccion.find((t) => t.id === seccion.tipo);
+  const toggleCategoria = (categoriaId: string) => {
+    if (!config) return;
+    const ids = config.categorias_seccion.categorias_ids;
+    const newIds = ids.includes(categoriaId)
+      ? ids.filter((id) => id !== categoriaId)
+      : [...ids, categoriaId];
+    setConfig({
+      ...config,
+      categorias_seccion: { ...config.categorias_seccion, categorias_ids: newIds },
+    });
+  };
+
+  const updateCategoriaIcono = async (categoriaId: string, newSvg: string) => {
+    setCategorias((prev) =>
+      prev.map((c) => (c.id === categoriaId ? { ...c, icono_svg: newSvg } : c))
+    );
+    setEditingIcon(null);
+
+    await supabase.from("categorias").update({ icono_svg: newSvg }).eq("id", categoriaId);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2d5a27]"></div>
+      </div>
+    );
+  }
+
+  if (!config) return null;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "bg-white rounded-xl p-4 shadow-sm flex items-center gap-4 border",
-        isDragging && "opacity-50 shadow-lg z-50"
-      )}
-    >
-      <button
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing p-2 hover:bg-gray-100 rounded-lg"
-      >
-        <GripVertical size={20} className="text-gray-400" />
-      </button>
-
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{tipoInfo?.nombre || seccion.tipo}</span>
-          <span className="text-xs text-gray-400">{seccion.titulo}</span>
+    <div className="space-y-8">
+      {/* Categorías Section */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Título de la sección
+          </label>
+          <input
+            type="text"
+            value={config.categorias_seccion.titulo}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                categorias_seccion: { ...config.categorias_seccion, titulo: e.target.value },
+              })
+            }
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
         </div>
-        <p className="text-xs text-gray-500">{tipoInfo?.descripcion}</p>
+
+        <h3 className="text-lg font-semibold mb-4">Categorías</h3>
+        <div className="space-y-2">
+          {categorias.map((cat) => {
+            const isSelected = config.categorias_seccion.categorias_ids.includes(cat.id);
+            return (
+              <div
+                key={cat.id}
+                className={cn(
+                  "flex items-center gap-4 p-4 rounded-xl border transition",
+                  isSelected ? "bg-green-50 border-green-300" : "bg-gray-50 border-gray-200"
+                )}
+              >
+                <button
+                  onClick={() => toggleCategoria(cat.id)}
+                  className={cn(
+                    "w-6 h-6 rounded border-2 flex items-center justify-center transition",
+                    isSelected ? "bg-green-600 border-green-600" : "border-gray-300"
+                  )}
+                >
+                  {isSelected && <Check size={14} className="text-white" />}
+                </button>
+
+                <button
+                  onClick={() => setEditingIcon({ id: cat.id, svg: cat.icono_svg, nombre: cat.nombre })}
+                  className="w-12 h-12 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:border-green-400"
+                >
+                  {cat.icono_svg ? (
+                    <div dangerouslySetInnerHTML={{ __html: cat.icono_svg }} className="w-7 h-7 text-green-700" />
+                  ) : (
+                    <span className="text-lg">🌿</span>
+                  )}
+                </button>
+
+                <span className="flex-1 font-medium">{cat.nombre}</span>
+                <span className="text-sm text-gray-400">
+                  {cat.subcategorias?.length || 0} subcategorías
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          checked={seccion.activa}
-          onChange={onToggle}
-          className="sr-only peer"
-        />
-        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-      </label>
-
-      <button
-        onClick={onEdit}
-        className="p-2 hover:bg-gray-100 rounded-lg transition"
-        title="Editar"
-      >
-        <Edit2 size={18} className="text-gray-600" />
-      </button>
-
-      <button
-        onClick={onDelete}
-        className="p-2 hover:bg-red-50 rounded-lg transition"
-        title="Eliminar"
-      >
-        <Trash2 size={18} className="text-red-500" />
-      </button>
-    </div>
-  );
-}
-
-interface LandingEditorProps {
-  secciones: SeccionLanding[];
-  onChange: (secciones: SeccionLanding[]) => void;
-}
-
-export function LandingEditor({ secciones, onChange }: LandingEditorProps) {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingSection, setEditingSection] = useState<SeccionLanding | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = secciones.findIndex((s) => s.id === active.id);
-      const newIndex = secciones.findIndex((s) => s.id === over.id);
-      onChange(arrayMove(secciones, oldIndex, newIndex));
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm("¿Estás seguro de eliminar esta sección?")) {
-      onChange(secciones.filter((s) => s.id !== id));
-    }
-  };
-
-  const handleToggle = (id: string) => {
-    onChange(
-      secciones.map((s) =>
-        s.id === id ? { ...s, activa: !s.activa } : s
-      )
-    );
-  };
-
-  const handleAdd = (tipo: SeccionLanding["tipo"]) => {
-    const newSection: SeccionLanding = {
-      id: `seccion_${Date.now()}`,
-      tipo,
-      titulo: `Nueva sección ${tipo}`,
-      activa: true,
-    };
-    onChange([...secciones, newSection]);
-    setShowAddModal(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={secciones.map((s) => s.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-3">
-            {secciones.map((seccion) => (
-              <SortableSection
-                key={seccion.id}
-                seccion={seccion}
-                onEdit={() => setEditingSection(seccion)}
-                onDelete={() => handleDelete(seccion.id)}
-                onToggle={() => handleToggle(seccion.id)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      {/* Add Button */}
-      <button
-        onClick={() => setShowAddModal(true)}
-        className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 text-gray-500 hover:border-green-400 hover:text-green-600 transition flex items-center justify-center gap-2"
-      >
-        <Plus size={20} />
-        Agregar nueva sección
-      </button>
-
-      {/* Add Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-bold">Agregar Sección</h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 grid grid-cols-1 gap-3">
-              {tiposSeccion.map((tipo) => (
-                <button
-                  key={tipo.id}
-                  onClick={() => handleAdd(tipo.id as SeccionLanding["tipo"])}
-                  className="text-left p-4 border border-gray-200 rounded-xl hover:border-green-400 hover:bg-green-50 transition"
-                >
-                  <p className="font-medium text-gray-900">{tipo.nombre}</p>
-                  <p className="text-sm text-gray-500">{tipo.descripcion}</p>
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Productos Section */}
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Título de la sección
+          </label>
+          <input
+            type="text"
+            value={config.productos_seccion.titulo}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                productos_seccion: { ...config.productos_seccion, titulo: e.target.value },
+              })
+            }
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
         </div>
-      )}
 
-      {/* Edit Modal */}
-      {editingSection && (
-        <SectionEditModal
-          seccion={editingSection}
-          onSave={(updated) => {
-            onChange(
-              secciones.map((s) =>
-                s.id === updated.id ? updated : s
-              )
-            );
-            setEditingSection(null);
-          }}
-          onClose={() => setEditingSection(null)}
+        <h3 className="text-lg font-semibold mb-4">Subcategoría de productos</h3>
+        <div className="relative">
+          <select
+            value={config.productos_seccion.subcategoria_id}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                productos_seccion: { ...config.productos_seccion, subcategoria_id: e.target.value },
+              })
+            }
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none"
+          >
+            <option value="">Sin subcategoría (mostrar todos)</option>
+            {subcategorias.map((sub) => (
+              <option key={sub.id} value={sub.id}>
+                {sub.categoria_nombre} → {sub.nombre}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <button
+        onClick={saveConfig}
+        disabled={saving}
+        className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-2"
+      >
+        {saving ? (
+          <>
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+            Guardando...
+          </>
+        ) : (
+          <>
+            <Save size={20} />
+            Guardar Cambios
+          </>
+        )}
+      </button>
+
+      {/* Icon Editor Modal */}
+      {editingIcon && (
+        <IconEditorModal
+          nombre={editingIcon.nombre}
+          svg={editingIcon.svg}
+          onSave={(svg) => updateCategoriaIcono(editingIcon.id, svg)}
+          onClose={() => setEditingIcon(null)}
         />
       )}
     </div>
   );
 }
 
-interface SectionEditModalProps {
-  seccion: SeccionLanding;
-  onSave: (seccion: SeccionLanding) => void;
+function IconEditorModal({
+  nombre,
+  svg,
+  onSave,
+  onClose,
+}: {
+  nombre: string;
+  svg: string;
+  onSave: (s: string) => void;
   onClose: () => void;
-}
-
-function SectionEditModal({ seccion, onSave, onClose }: SectionEditModalProps) {
-  const [formData, setFormData] = useState(seccion);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
+}) {
+  const [svgCode, setSvgCode] = useState(svg);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold">Editar Sección</h2>
+          <h2 className="text-xl font-bold">Editar Icono: {nombre}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Título de la sección
-            </label>
-            <input
-              type="text"
-              value={formData.titulo}
-              onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+            <label className="block text-sm font-medium text-gray-700 mb-2">Código SVG</label>
+            <textarea
+              value={svgCode}
+              onChange={(e) => setSvgCode(e.target.value)}
+              className="w-full h-32 px-4 py-3 font-mono text-sm bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="<svg viewBox='0 0 24 24' ...>"
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Estado
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.activa}
-                onChange={(e) => setFormData({ ...formData, activa: e.target.checked })}
-                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-              />
-              <span>Activa</span>
-            </label>
+          <div className="flex items-center justify-center h-20 bg-gray-50 rounded-xl border">
+            {svgCode ? (
+              <div className="w-16 h-16 text-green-700" dangerouslySetInnerHTML={{ __html: svgCode }} />
+            ) : (
+              <span className="text-gray-400">Sin icono</span>
+            )}
           </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-100 transition"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition"
-            >
-              Guardar
-            </button>
-          </div>
-        </form>
+        </div>
+        <div className="flex justify-end gap-3 p-6 border-t">
+          <button onClick={onClose} className="px-6 py-3 border rounded-xl hover:bg-gray-100">
+            Cancelar
+          </button>
+          <button onClick={() => onSave(svgCode)} className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700">
+            Guardar
+          </button>
+        </div>
       </div>
     </div>
   );
