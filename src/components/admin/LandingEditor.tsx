@@ -293,10 +293,10 @@ export function LandingEditor() {
 
                 <button
                   onClick={() => setEditingIcon({ id: cat.id, svg: cat.icono_svg, nombre: cat.nombre })}
-                  className="w-12 h-12 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:border-green-400 transition"
+                  className="w-12 h-12 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:border-green-400 transition overflow-hidden"
                 >
                   {cat.icono_svg ? (
-                    <div dangerouslySetInnerHTML={{ __html: cat.icono_svg }} className="w-7 h-7 text-green-700" />
+                    <img src={cat.icono_svg} alt={cat.nombre} className="w-7 h-7 object-contain" />
                   ) : (
                     <span className="text-lg">🌿</span>
                   )}

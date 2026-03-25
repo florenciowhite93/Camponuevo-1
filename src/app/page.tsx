@@ -158,11 +158,12 @@ export default function HomePage() {
                   className="group bg-white border border-gray-100 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] hover:shadow-xl hover:border-[#4caf50] transition-all duration-300"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
                     {cat.icono_svg ? (
-                      <div
-                        className="w-12 h-12 text-[#2d5a27]"
-                        dangerouslySetInnerHTML={{ __html: cat.icono_svg }}
+                      <img
+                        src={cat.icono_svg}
+                        alt={cat.nombre}
+                        className="w-12 h-12 object-contain"
                       />
                     ) : (
                       <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
