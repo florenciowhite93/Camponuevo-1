@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import type { Producto } from "@/types";
 import { createClient } from "@/lib/supabase/client";
@@ -469,34 +470,7 @@ export default function CatalogoPage() {
       </div>
       </main>
 
-      <footer className="bg-[#1b5e20] text-white pt-16 pb-8 mt-auto">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center mb-6">
-                <div className="bg-white w-10 h-10 rounded-full flex items-center justify-center">
-                  <i className="fas fa-seedling text-[#2d5a27] text-xl"></i>
-                </div>
-                <span className="ml-2 text-2xl font-bold">Camponuevo</span>
-              </div>
-              <p className="text-gray-400 mb-6 font-light">Tu tienda agropecuaria de confianza para productos naturales, veterinarios y agrícolas.</p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-bold mb-6 text-white border-b border-gray-700 pb-2 inline-block">Menú Principal</h3>
-              <ul className="space-y-3 font-light text-gray-300">
-                <li><Link href="/" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Inicio</Link></li>
-                <li><Link href="/catalogo" className="hover:text-[#8bc34a] transition flex items-center text-[#8bc34a]"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Catálogo</Link></li>
-                <li><Link href="/nosotros" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Nosotros</Link></li>
-                <li><Link href="#contacto" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Contacto</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2026 Camponuevo. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }
