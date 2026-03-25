@@ -254,6 +254,12 @@ export function Header({ cartCount = 0 }: HeaderProps) {
               </Link>
               <Link
                 href="/nosotros#contacto"
+                onClick={(e) => {
+                  if (window.location.pathname === '/nosotros') {
+                    e.preventDefault();
+                    document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
                 className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
               >
                 Contacto
@@ -497,6 +503,12 @@ export function Header({ cartCount = 0 }: HeaderProps) {
               </Link>
               <Link
                 href="/nosotros#contacto"
+                onClick={(e) => {
+                  if (window.location.pathname === '/nosotros') {
+                    e.preventDefault();
+                    document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
                 className="text-gray-700 hover:text-[#2d5a27] font-medium py-2"
               >
                 Contacto

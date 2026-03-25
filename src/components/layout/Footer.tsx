@@ -61,7 +61,16 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/nosotros#contacto" className="text-gray-300 hover:text-white transition">
+                <Link 
+                  href="/nosotros#contacto" 
+                  onClick={(e) => {
+                    if (window.location.pathname === '/nosotros') {
+                      e.preventDefault();
+                      document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="text-gray-300 hover:text-white transition"
+                >
                   Contacto
                 </Link>
               </li>
