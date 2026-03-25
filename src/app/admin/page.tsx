@@ -63,6 +63,29 @@ export default function AdminPage() {
   const [showClienteModal, setShowClienteModal] = useState(false);
   const [editingCliente, setEditingCliente] = useState<any>(null);
 
+  // Advanced Edit Modals (with product management)
+  const [showEditSubCatModal, setShowEditSubCatModal] = useState(false);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<any>(null);
+  const [subcategoryProducts, setSubcategoryProducts] = useState<any[]>([]);
+  const [subcatSearchTerm, setSubcatSearchTerm] = useState("");
+  const [showEditSubCatNameModal, setShowEditSubCatNameModal] = useState(false);
+  const [editSubCatName, setEditSubCatName] = useState("");
+
+  const [showEditLabModal, setShowEditLabModal] = useState(false);
+  const [selectedLab, setSelectedLab] = useState<any>(null);
+  const [labProducts, setLabProducts] = useState<any[]>([]);
+  const [labSearchTerm, setLabSearchTerm] = useState("");
+  const [showEditLabNameModal, setShowEditLabNameModal] = useState(false);
+  const [editLabName, setEditLabName] = useState("");
+
+  const [showEditLabelModal, setShowEditLabelModal] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState<any>(null);
+  const [labelProducts, setLabelProducts] = useState<any[]>([]);
+  const [labelSearchTerm, setLabelSearchTerm] = useState("");
+  const [showEditLabelNameModal, setShowEditLabelNameModal] = useState(false);
+  const [editLabelName, setEditLabelName] = useState("");
+  const [editLabelColor, setEditLabelColor] = useState("#2d5a27");
+
   // Forms
   const [productForm, setProductForm] = useState({
     titulo: "",
@@ -348,6 +371,182 @@ export default function AdminPage() {
       await supabase.from("etiquetas").delete().eq("id", id);
       await fetchAllData();
     }
+  };
+
+  // --- SUBCATEGORÍAS: Gestión avanzada de productos ---
+  const openEditSubCatModal = async (subcategory: any) => {
+    setSelectedSubcategory(subcategory);
+    setSubcategoryProducts([]);
+    setSubcatSearchTerm("");
+    setShowEditSubCatModal(true);
+    
+    const { data } = await supabase
+      .from("productos")
+      .select("*")
+      .contains("subcategorias_ids", [subcategory.id]);
+    setSubcategoryProducts(data || []);
+  };
+
+  const addProductToSubcategory = async (productId: string) => {
+    const product = productos.find(p => p.id === productId);
+    if (!product || !selectedSubcategory) return;
+
+    const currentIds = product.subcategorias_ids || [];
+    if (!currentIds.includes(selectedSubcategory.id)) {
+      await supabase
+        .from("productos")
+        .update({ subcategorias_ids: [...currentIds, selectedSubcategory.id] })
+        .eq("id", productId);
+      
+      setSubcategoryProducts([...subcategoryProducts, product]);
+      await fetchAllData();
+    }
+  };
+
+  const removeProductFromSubcategory = async (productId: string) => {
+    const product = productos.find(p => p.id === productId);
+    if (!product || !selectedSubcategory) return;
+
+    const currentIds = product.subcategorias_ids || [];
+    const newIds = currentIds.filter((id: string) => id !== selectedSubcategory.id);
+    
+    await supabase
+      .from("productos")
+      .update({ subcategorias_ids: newIds })
+      .eq("id", productId);
+    
+    setSubcategoryProducts(subcategoryProducts.filter(p => p.id !== productId));
+    await fetchAllData();
+  };
+
+  const saveSubCatName = async () => {
+    if (!selectedSubcategory || !editSubCatName.trim()) return;
+    await supabase.from("subcategorias").update({ nombre: editSubCatName.trim() }).eq("id", selectedSubcategory.id);
+    setSelectedSubcategory({ ...selectedSubcategory, nombre: editSubCatName.trim() });
+    setSubcategorias(subcategorias.map(s => s.id === selectedSubcategory.id ? { ...s, nombre: editSubCatName.trim() } : s));
+    setShowEditSubCatNameModal(false);
+  };
+
+  const deleteSubcategoryAdvanced = async () => {
+    if (!selectedSubcategory || !confirm(`¿Eliminar la subcategoría "${selectedSubcategory.nombre}"? Los productos no se eliminarán, solo se desasociarán.`)) return;
+    await supabase.from("subcategorias").delete().eq("id", selectedSubcategory.id);
+    setShowEditSubCatModal(false);
+    await fetchAllData();
+  };
+
+  // --- LABORATORIOS: Gestión avanzada de productos ---
+  const openEditLabModal = async (lab: any) => {
+    setSelectedLab(lab);
+    setLabProducts([]);
+    setLabSearchTerm("");
+    setShowEditLabModal(true);
+    
+    const { data } = await supabase
+      .from("productos")
+      .select("*")
+      .eq("laboratorio_id", lab.id);
+    setLabProducts(data || []);
+  };
+
+  const addProductToLab = async (productId: string) => {
+    const product = productos.find(p => p.id === productId);
+    if (!product || !selectedLab) return;
+
+    await supabase
+      .from("productos")
+      .update({ laboratorio_id: selectedLab.id })
+      .eq("id", productId);
+    
+    setLabProducts([...labProducts, product]);
+    await fetchAllData();
+  };
+
+  const removeProductFromLab = async (productId: string) => {
+    await supabase
+      .from("productos")
+      .update({ laboratorio_id: null })
+      .eq("id", productId);
+    
+    setLabProducts(labProducts.filter(p => p.id !== productId));
+    await fetchAllData();
+  };
+
+  const saveLabName = async () => {
+    if (!selectedLab || !editLabName.trim()) return;
+    await supabase.from("laboratorios").update({ nombre: editLabName.trim() }).eq("id", selectedLab.id);
+    setSelectedLab({ ...selectedLab, nombre: editLabName.trim() });
+    setLaboratorios(laboratorios.map(l => l.id === selectedLab.id ? { ...l, nombre: editLabName.trim() } : l));
+    setShowEditLabNameModal(false);
+  };
+
+  const deleteLabAdvanced = async () => {
+    if (!selectedLab || !confirm(`¿Eliminar el laboratorio "${selectedLab.nombre}"? Los productos no se eliminarán, solo se desasociarán.`)) return;
+    await supabase.from("laboratorios").delete().eq("id", selectedLab.id);
+    setShowEditLabModal(false);
+    await fetchAllData();
+  };
+
+  // --- ETIQUETAS: Gestión avanzada de productos ---
+  const openEditLabelModal = async (label: any) => {
+    setSelectedLabel(label);
+    setEditLabelName(label.nombre);
+    setEditLabelColor(label.color || "#2d5a27");
+    setLabelProducts([]);
+    setLabelSearchTerm("");
+    setShowEditLabelModal(true);
+    
+    const { data } = await supabase
+      .from("productos")
+      .select("*")
+      .contains("etiquetas_ids", [label.id]);
+    setLabelProducts(data || []);
+  };
+
+  const addProductToLabel = async (productId: string) => {
+    const product = productos.find(p => p.id === productId);
+    if (!product || !selectedLabel) return;
+
+    const currentIds = product.etiquetas_ids || [];
+    if (!currentIds.includes(selectedLabel.id)) {
+      await supabase
+        .from("productos")
+        .update({ etiquetas_ids: [...currentIds, selectedLabel.id] })
+        .eq("id", productId);
+      
+      setLabelProducts([...labelProducts, product]);
+      await fetchAllData();
+    }
+  };
+
+  const removeProductFromLabel = async (productId: string) => {
+    const product = productos.find(p => p.id === productId);
+    if (!product || !selectedLabel) return;
+
+    const currentIds = product.etiquetas_ids || [];
+    const newIds = currentIds.filter((id: string) => id !== selectedLabel.id);
+    
+    await supabase
+      .from("productos")
+      .update({ etiquetas_ids: newIds })
+      .eq("id", productId);
+    
+    setLabelProducts(labelProducts.filter(p => p.id !== productId));
+    await fetchAllData();
+  };
+
+  const saveLabelName = async () => {
+    if (!selectedLabel || !editLabelName.trim()) return;
+    await supabase.from("etiquetas").update({ nombre: editLabelName.trim(), color: editLabelColor }).eq("id", selectedLabel.id);
+    setSelectedLabel({ ...selectedLabel, nombre: editLabelName.trim(), color: editLabelColor });
+    setEtiquetas(etiquetas.map(l => l.id === selectedLabel.id ? { ...l, nombre: editLabelName.trim(), color: editLabelColor } : l));
+    setShowEditLabelNameModal(false);
+  };
+
+  const deleteLabelAdvanced = async () => {
+    if (!selectedLabel || !confirm(`¿Eliminar la etiqueta "${selectedLabel.nombre}"? Los productos no se eliminarán, solo se desasociarán.`)) return;
+    await supabase.from("etiquetas").delete().eq("id", selectedLabel.id);
+    setShowEditLabelModal(false);
+    await fetchAllData();
   };
 
   // --- PEDIDOS ---
@@ -683,11 +882,12 @@ export default function AdminPage() {
                         <div className="flex items-center gap-3">
                           <Layers size={20} className="text-gray-400" />
                           <div>
-                            <span className="font-medium">{sub.nombre}</span>
+                            <button onClick={() => openEditSubCatModal(sub)} className="font-medium hover:text-[#2d5a27] transition text-left">{sub.nombre}</button>
                             {cat && <span className="text-xs text-gray-500 ml-2">({cat.nombre})</span>}
                           </div>
                         </div>
                         <div className="flex gap-2">
+                          <button onClick={() => openEditSubCatModal(sub)} className="p-2 hover:bg-gray-100 rounded-lg" title="Gestionar productos"><Package size={18} className="text-[#2d5a27]" /></button>
                           <button onClick={() => openSubcategoryModal(sub)} className="p-2 hover:bg-gray-100 rounded-lg"><Edit2 size={18} className="text-gray-600" /></button>
                           <button onClick={() => deleteSubcategory(sub.id)} className="p-2 hover:bg-red-50 rounded-lg"><Trash2 size={18} className="text-red-500" /></button>
                         </div>
@@ -713,14 +913,17 @@ export default function AdminPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {laboratorios.map((lab) => (
-                  <div key={lab.id} className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><FlaskConical size={20} className="text-blue-600" /></div>
-                      <span className="font-medium">{lab.nombre}</span>
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => openLabModal(lab)} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={16} className="text-gray-500" /></button>
-                      <button onClick={() => deleteLab(lab.id)} className="p-1.5 hover:bg-red-50 rounded"><Trash2 size={16} className="text-red-400" /></button>
+                  <div key={lab.id} className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center"><FlaskConical size={20} className="text-blue-600" /></div>
+                        <button onClick={() => openEditLabModal(lab)} className="font-medium hover:text-[#2d5a27] transition">{lab.nombre}</button>
+                      </div>
+                      <div className="flex gap-1">
+                        <button onClick={() => openEditLabModal(lab)} className="p-1.5 hover:bg-gray-100 rounded" title="Gestionar productos"><Package size={16} className="text-[#2d5a27]" /></button>
+                        <button onClick={() => openLabModal(lab)} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={16} className="text-gray-500" /></button>
+                        <button onClick={() => deleteLab(lab.id)} className="p-1.5 hover:bg-red-50 rounded"><Trash2 size={16} className="text-red-400" /></button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -755,14 +958,17 @@ export default function AdminPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {etiquetas.map((etq) => (
-                  <div key={etq.id} className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: etq.color }} />
-                      <span className="font-medium">{etq.nombre}</span>
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => openEtiquetaModal(etq)} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={16} className="text-gray-500" /></button>
-                      <button onClick={() => deleteEtiqueta(etq.id)} className="p-1.5 hover:bg-red-50 rounded"><Trash2 size={16} className="text-red-400" /></button>
+                  <div key={etq.id} className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => openEditLabelModal(etq)} className="w-4 h-4 rounded-full hover:ring-2 hover:ring-offset-1 hover:ring-gray-400 transition" style={{ backgroundColor: etq.color }} />
+                        <button onClick={() => openEditLabelModal(etq)} className="font-medium hover:text-[#2d5a27] transition">{etq.nombre}</button>
+                      </div>
+                      <div className="flex gap-1">
+                        <button onClick={() => openEditLabelModal(etq)} className="p-1.5 hover:bg-gray-100 rounded" title="Gestionar productos"><Package size={16} className="text-[#2d5a27]" /></button>
+                        <button onClick={() => openEtiquetaModal(etq)} className="p-1.5 hover:bg-gray-100 rounded"><Edit2 size={16} className="text-gray-500" /></button>
+                        <button onClick={() => deleteEtiqueta(etq.id)} className="p-1.5 hover:bg-red-50 rounded"><Trash2 size={16} className="text-red-400" /></button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1143,6 +1349,246 @@ export default function AdminPage() {
                 <button onClick={() => setShowClienteModal(false)} className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">Cancelar</button>
                 <button onClick={handleSaveCliente} className="flex-1 px-6 py-3 bg-[#2d5a27] hover:bg-[#1b5e20] text-white rounded-xl font-medium">Guardar</button>
               </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR SUBCATEGORÍA (Gestión de productos) */}
+      {showEditSubCatModal && selectedSubcategory && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowEditSubCatModal(false)} />
+          <div className="fixed inset-4 md:inset-auto md:top-4 md:left-1/2 md:-translate-x-1/2 md:right-4 md:bottom-4 bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden max-h-[calc(100vh-2rem)]">
+            <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+              <div>
+                <h2 className="text-xl font-bold">Editar Sub-Categoría</h2>
+                <button onClick={() => { setEditSubCatName(selectedSubcategory.nombre); setShowEditSubCatNameModal(true); }} 
+                  className="text-sm text-[#2d5a27] hover:underline mt-1">{selectedSubcategory.nombre} (clic para cambiar nombre)</button>
+              </div>
+              <button onClick={() => setShowEditSubCatModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Productos en esta sub-categoría</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto bg-gray-50 rounded-lg p-2">
+                  {subcategoryProducts.length > 0 ? subcategoryProducts.map((prod) => (
+                    <div key={prod.id} className="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
+                      <span className="text-sm font-medium truncate flex-1">{prod.titulo}</span>
+                      <button onClick={() => removeProductFromSubcategory(prod.id)} className="p-1 hover:bg-red-50 rounded text-red-500 ml-2">
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )) : <p className="text-sm text-gray-400 text-center py-4">No hay productos en esta sub-categoría</p>}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Agregar productos</h4>
+                <input type="text" placeholder="Buscar productos..." value={subcatSearchTerm} onChange={(e) => setSubcatSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                  {productos.filter(p => 
+                    p.titulo?.toLowerCase().includes(subcatSearchTerm.toLowerCase()) && 
+                    !subcategoryProducts.find(sp => sp.id === p.id)
+                  ).slice(0, 20).map((prod) => (
+                    <div key={prod.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                      onClick={() => addProductToSubcategory(prod.id)}>
+                      <span className="text-sm font-medium truncate flex-1">{prod.titulo}</span>
+                      <Plus size={16} className="text-[#2d5a27]" />
+                    </div>
+                  ))}
+                  {productos.filter(p => p.titulo?.toLowerCase().includes(subcatSearchTerm.toLowerCase()) && !subcategoryProducts.find(sp => sp.id === p.id)).length === 0 && (
+                    <p className="text-sm text-gray-400 text-center py-4">No hay productos disponibles</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex justify-between">
+              <button onClick={deleteSubcategoryAdvanced} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2">
+                <Trash2 size={16} /> Eliminar
+              </button>
+              <button onClick={() => setShowEditSubCatModal(false)} className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cerrar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR NOMBRE SUBCATEGORÍA */}
+      {showEditSubCatNameModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowEditSubCatNameModal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[60] p-6">
+            <h3 className="text-lg font-bold mb-4">Editar Nombre de Sub-Categoría</h3>
+            <input type="text" value={editSubCatName} onChange={(e) => setEditSubCatName(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setShowEditSubCatNameModal(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+              <button onClick={saveSubCatName} className="flex-1 px-4 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition">Guardar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR LABORATORIO (Gestión de productos) */}
+      {showEditLabModal && selectedLab && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowEditLabModal(false)} />
+          <div className="fixed inset-4 md:inset-auto md:top-4 md:left-1/2 md:-translate-x-1/2 md:right-4 md:bottom-4 bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden max-h-[calc(100vh-2rem)]">
+            <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+              <div>
+                <h2 className="text-xl font-bold">Editar Laboratorio</h2>
+                <button onClick={() => { setEditLabName(selectedLab.nombre); setShowEditLabNameModal(true); }} 
+                  className="text-sm text-[#2d5a27] hover:underline mt-1">{selectedLab.nombre} (clic para cambiar nombre)</button>
+              </div>
+              <button onClick={() => setShowEditLabModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Productos de este laboratorio</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto bg-gray-50 rounded-lg p-2">
+                  {labProducts.length > 0 ? labProducts.map((prod) => (
+                    <div key={prod.id} className="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
+                      <span className="text-sm font-medium truncate flex-1">{prod.titulo}</span>
+                      <button onClick={() => removeProductFromLab(prod.id)} className="p-1 hover:bg-red-50 rounded text-red-500 ml-2">
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )) : <p className="text-sm text-gray-400 text-center py-4">No hay productos de este laboratorio</p>}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Agregar productos</h4>
+                <input type="text" placeholder="Buscar productos..." value={labSearchTerm} onChange={(e) => setLabSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                  {productos.filter(p => 
+                    p.titulo?.toLowerCase().includes(labSearchTerm.toLowerCase()) && 
+                    !labProducts.find(lp => lp.id === p.id)
+                  ).slice(0, 20).map((prod) => (
+                    <div key={prod.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                      onClick={() => addProductToLab(prod.id)}>
+                      <span className="text-sm font-medium truncate flex-1">{prod.titulo}</span>
+                      <Plus size={16} className="text-[#2d5a27]" />
+                    </div>
+                  ))}
+                  {productos.filter(p => p.titulo?.toLowerCase().includes(labSearchTerm.toLowerCase()) && !labProducts.find(lp => lp.id === p.id)).length === 0 && (
+                    <p className="text-sm text-gray-400 text-center py-4">No hay productos disponibles</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex justify-between">
+              <button onClick={deleteLabAdvanced} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2">
+                <Trash2 size={16} /> Eliminar
+              </button>
+              <button onClick={() => setShowEditLabModal(false)} className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cerrar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR NOMBRE LABORATORIO */}
+      {showEditLabNameModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowEditLabNameModal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[60] p-6">
+            <h3 className="text-lg font-bold mb-4">Editar Nombre de Laboratorio</h3>
+            <input type="text" value={editLabName} onChange={(e) => setEditLabName(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setShowEditLabNameModal(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+              <button onClick={saveLabName} className="flex-1 px-4 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition">Guardar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR ETIQUETA (Gestión de productos) */}
+      {showEditLabelModal && selectedLabel && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowEditLabelModal(false)} />
+          <div className="fixed inset-4 md:inset-auto md:top-4 md:left-1/2 md:-translate-x-1/2 md:right-4 md:bottom-4 bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden max-h-[calc(100vh-2rem)]">
+            <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full shadow-sm" style={{ backgroundColor: selectedLabel.color }} />
+                <div>
+                  <h2 className="text-xl font-bold">Editar Etiqueta</h2>
+                  <button onClick={() => setShowEditLabelNameModal(true)} 
+                    className="text-sm text-[#2d5a27] hover:underline mt-1">{selectedLabel.nombre} (clic para editar)</button>
+                </div>
+              </div>
+              <button onClick={() => setShowEditLabelModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Productos con esta etiqueta</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto bg-gray-50 rounded-lg p-2">
+                  {labelProducts.length > 0 ? labelProducts.map((prod) => (
+                    <div key={prod.id} className="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
+                      <span className="text-sm font-medium truncate flex-1">{prod.titulo}</span>
+                      <button onClick={() => removeProductFromLabel(prod.id)} className="p-1 hover:bg-red-50 rounded text-red-500 ml-2">
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )) : <p className="text-sm text-gray-400 text-center py-4">No hay productos con esta etiqueta</p>}
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Agregar productos</h4>
+                <input type="text" placeholder="Buscar productos..." value={labelSearchTerm} onChange={(e) => setLabelSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                  {productos.filter(p => 
+                    p.titulo?.toLowerCase().includes(labelSearchTerm.toLowerCase()) && 
+                    !labelProducts.find(lp => lp.id === p.id)
+                  ).slice(0, 20).map((prod) => (
+                    <div key={prod.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                      onClick={() => addProductToLabel(prod.id)}>
+                      <span className="text-sm font-medium truncate flex-1">{prod.titulo}</span>
+                      <Plus size={16} className="text-[#2d5a27]" />
+                    </div>
+                  ))}
+                  {productos.filter(p => p.titulo?.toLowerCase().includes(labelSearchTerm.toLowerCase()) && !labelProducts.find(lp => lp.id === p.id)).length === 0 && (
+                    <p className="text-sm text-gray-400 text-center py-4">No hay productos disponibles</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex justify-between">
+              <button onClick={deleteLabelAdvanced} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex items-center gap-2">
+                <Trash2 size={16} /> Eliminar
+              </button>
+              <button onClick={() => setShowEditLabelModal(false)} className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cerrar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL EDITAR NOMBRE/COLOR ETIQUETA */}
+      {showEditLabelNameModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowEditLabelNameModal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[60] p-6">
+            <h3 className="text-lg font-bold mb-4">Editar Etiqueta</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                <input type="text" value={editLabelName} onChange={(e) => setEditLabelName(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
+                <div className="flex gap-2 flex-wrap">
+                  {COLORES_ETIQUETAS.map((color) => (
+                    <button key={color} onClick={() => setEditLabelColor(color)}
+                      className={cn("w-8 h-8 rounded-lg border-2", editLabelColor === color ? "border-gray-900 ring-2 ring-[#2d5a27]" : "border-white")}
+                      style={{ backgroundColor: color }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowEditLabelNameModal(false)} className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+              <button onClick={saveLabelName} className="flex-1 px-4 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition">Guardar</button>
             </div>
           </div>
         </>
