@@ -91,7 +91,7 @@ export interface CategoriasConfig {
 export interface ProductosConfig {
   titulo: string;
   descripcion: string;
-  productos_ids: string[];
+  subcategorias_ids: string[];
   max_productos: number;
 }
 
