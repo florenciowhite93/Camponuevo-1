@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS public.categorias (
   nombre TEXT NOT NULL,
   icono_svg TEXT,
   orden INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Tabla de subcategorías

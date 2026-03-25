@@ -26,6 +26,23 @@ interface HomeConfig {
   };
 }
 
+function normalizeSvg(svg: string): string {
+  if (!svg) return "";
+  
+  let normalized = svg.trim();
+  
+  normalized = normalized.replace(/width="[^"]*"/gi, 'width="24"');
+  normalized = normalized.replace(/height="[^"]*"/gi, 'height="24"');
+  
+  if (!normalized.includes('width=') && !normalized.includes('viewBox=')) {
+    normalized = normalized.replace('<svg', '<svg width="24" height="24"');
+  } else if (!normalized.includes('viewBox=')) {
+    normalized = normalized.replace('<svg', '<svg viewBox="0 0 24 24"');
+  }
+  
+  return normalized;
+}
+
 export function LandingEditor() {
   const [config, setConfig] = useState<HomeConfig | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -190,14 +207,16 @@ export function LandingEditor() {
   };
 
   const updateCategoriaIcono = async (categoriaId: string, newSvg: string) => {
+    const normalizedSvg = normalizeSvg(newSvg);
+    
     setCategorias((prev) =>
-      prev.map((c) => (c.id === categoriaId ? { ...c, icono_svg: newSvg } : c))
+      prev.map((c) => (c.id === categoriaId ? { ...c, icono_svg: normalizedSvg } : c))
     );
     setEditingIcon(null);
 
     const { error } = await supabase
       .from("categorias")
-      .update({ icono_svg: newSvg, updated_at: new Date().toISOString() })
+      .update({ icono_svg: normalizedSvg, updated_at: new Date().toISOString() })
       .eq("id", categoriaId);
 
     if (error) {

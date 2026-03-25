@@ -10,6 +10,23 @@ interface IconPickerProps {
   onClear?: () => void;
 }
 
+function normalizeSvg(svg: string): string {
+  if (!svg) return "";
+  
+  let normalized = svg.trim();
+  
+  normalized = normalized.replace(/width="[^"]*"/gi, 'width="24"');
+  normalized = normalized.replace(/height="[^"]*"/gi, 'height="24"');
+  
+  if (!normalized.includes('viewBox=')) {
+    if (normalized.includes('<svg')) {
+      normalized = normalized.replace('<svg', '<svg viewBox="0 0 24 24"');
+    }
+  }
+  
+  return normalized;
+}
+
 export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -30,7 +47,8 @@ export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const svgContent = event.target?.result as string;
-        onChange(svgContent);
+        const normalized = normalizeSvg(svgContent);
+        onChange(normalized);
         setIsUploading(false);
       };
       reader.onerror = () => {
@@ -56,6 +74,11 @@ export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
     }
   }, [processFile]);
 
+  const handleClear = useCallback(() => {
+    onChange("");
+    onClear?.();
+  }, [onChange, onClear]);
+
   return (
     <div className="space-y-4">
       {/* Preview grande */}
@@ -68,7 +91,7 @@ export function IconPicker({ value, onChange, onClear }: IconPickerProps) {
             />
             {onClear && (
               <button
-                onClick={onClear}
+                onClick={handleClear}
                 className="absolute top-2 right-2 p-1 bg-red-100 hover:bg-red-200 rounded-full transition"
               >
                 <X size={16} className="text-red-600" />
