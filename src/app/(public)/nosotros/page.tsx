@@ -100,7 +100,7 @@ export default function NosotrosPage() {
         </div>
 
         {/* Fila 2: Mapa + Formulario de Contacto unidos */}
-        <div id="contacto" className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 overflow-hidden">
+        <div id="contacto" className="scroll-mt-30 bg-white rounded-3xl shadow-xl shadow-gray-200/50 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* Contenido Ubicación */}
             <div className="p-8 md:p-12 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col">
@@ -279,7 +279,7 @@ export default function NosotrosPage() {
               <ul className="space-y-3 font-light text-gray-300">
                 <li><Link href="/" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Inicio</Link></li>
                 <li><Link href="/catalogo" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Catálogo</Link></li>
-                <li><Link href="/nosotros#nosotros" className="hover:text-[#8bc34a] transition flex items-center text-[#8bc34a]"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Nosotros</Link></li>
+                <li><Link href="/nosotros" className="hover:text-[#8bc34a] transition flex items-center text-[#8bc34a]"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Nosotros</Link></li>
                 <li><Link href="/nosotros#contacto" className="hover:text-[#8bc34a] transition flex items-center text-[#8bc34a]"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Contacto</Link></li>
               </ul>
             </div>

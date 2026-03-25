@@ -247,7 +247,7 @@ export function Header({ cartCount = 0 }: HeaderProps) {
                 Catálogo
               </Link>
               <Link
-                href="/nosotros#nosotros"
+                href="/nosotros"
                 className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
               >
                 Nosotros
@@ -490,7 +490,7 @@ export function Header({ cartCount = 0 }: HeaderProps) {
                 Catálogo
               </Link>
               <Link
-                href="/nosotros#nosotros"
+                href="/nosotros"
                 className="text-gray-700 hover:text-[#2d5a27] font-medium py-2"
               >
                 Nosotros
