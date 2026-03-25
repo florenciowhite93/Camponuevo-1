@@ -488,7 +488,7 @@ export default function CatalogoPage() {
                 <li><Link href="/" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Inicio</Link></li>
                 <li><Link href="/catalogo" className="hover:text-[#8bc34a] transition flex items-center text-[#8bc34a]"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Catálogo</Link></li>
                 <li><Link href="/nosotros" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Nosotros</Link></li>
-                <li><Link href="/nosotros#contacto" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Contacto</Link></li>
+                <li><Link href="#contacto" className="hover:text-[#8bc34a] transition flex items-center"><i className="fas fa-chevron-right text-xs mr-2 text-[#2d5a27]"></i> Contacto</Link></li>
               </ul>
             </div>
           </div>
