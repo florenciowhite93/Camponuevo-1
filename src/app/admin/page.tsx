@@ -10,15 +10,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { HomeEditor } from "@/components/admin/HomeEditor";
+import { LandingEditorView } from "@/components/admin/LandingEditorView";
 
 const supabase = createClient();
 
-type AdminView = "dashboard" | "home" | "productos" | "categorias" | "subcategorias" | "laboratorios" | "etiquetas" | "clientes" | "pedidos";
+type AdminView = "dashboard" | "productos" | "categorias" | "subcategorias" | "laboratorios" | "etiquetas" | "clientes" | "pedidos" | "landing";
 
 const sidebarItems = [
   { id: "dashboard" as AdminView, label: "Panel de Control", icon: Layout },
-  { id: "home" as AdminView, label: "Home", icon: Layers },
+  { id: "landing" as AdminView, label: "Editor Landing", icon: Layers },
   { id: "productos" as AdminView, label: "Productos", icon: Package },
   { id: "categorias" as AdminView, label: "Categorías", icon: FolderTree },
   { id: "subcategorias" as AdminView, label: "Sub-Categorías", icon: Layers },
@@ -832,7 +832,7 @@ export default function AdminPage() {
           )}
 
           {/* LANDING EDITOR */}
-          {activeView === "home" && <HomeEditor />}
+          {activeView === "landing" && <LandingEditorView />}
 
           {/* PRODUCTOS */}
           {activeView === "productos" && (

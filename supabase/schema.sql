@@ -67,30 +67,16 @@ CREATE TABLE IF NOT EXISTS public.productos (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Tabla de banner de home
-CREATE TABLE IF NOT EXISTS public.banner_home (
+-- Tabla de secciones de landing
+CREATE TABLE IF NOT EXISTS public.secciones_landing (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  titulo TEXT,
-  subtitulo TEXT,
-  imagen_url TEXT,
-  texto_boton TEXT,
-  enlace_boton TEXT,
-  activa BOOLEAN DEFAULT true,
+  tipo TEXT NOT NULL CHECK (tipo IN ('hero', 'categorias', 'productos', 'testimonios', 'newsletter')),
   orden INTEGER DEFAULT 0,
+  activa BOOLEAN DEFAULT true,
+  config JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Tabla de productos del mes
-CREATE TABLE IF NOT EXISTS public.productos_mes (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  producto_id UUID REFERENCES public.productos(id) ON DELETE CASCADE,
-  orden INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Agregar campo visible_home a categorias
-ALTER TABLE public.categorias ADD COLUMN IF NOT EXISTS visible_home BOOLEAN DEFAULT true;
 
 -- Tabla de pedidos
 CREATE TABLE IF NOT EXISTS public.pedidos (
