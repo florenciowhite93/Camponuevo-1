@@ -10,40 +10,44 @@ import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
 
-const categorias: Categoria[] = [
-  { id: "1", nombre: "Veterinaria", icono_svg: "", orden: 1 },
-  { id: "2", nombre: "Bovinos", icono_svg: "", orden: 2 },
-  { id: "3", nombre: "Ovinos", icono_svg: "", orden: 3 },
-  { id: "4", nombre: "Equinos", icono_svg: "", orden: 4 },
-];
+interface Banner {
+  titulo: string;
+  subtitulo: string;
+  imagen_url: string;
+  texto_boton: string;
+  enlace_boton: string;
+}
 
 export default function HomePage() {
-  const [productosDestacados, setProductosDestacados] = useState<Producto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [banner, setBanner] = useState<Banner | null>(null);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [productosMes, setProductosMes] = useState<Producto[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProductosDestacados();
+    loadData();
   }, []);
 
-  const fetchProductosDestacados = async () => {
+  const loadData = async () => {
     try {
-      const { data, error } = await supabase
-        .from("productos")
-        .select(`*, laboratorio:laboratorios(nombre)`)
-        .eq("visible", true)
-        .limit(8);
+      const [bannerRes, categoriasRes, productosMesRes] = await Promise.all([
+        supabase.from("banner_home").select("*").eq("activa", true).order("orden").limit(1).single(),
+        supabase.from("categorias").select("*").eq("visible_home", true).order("orden"),
+        supabase.from("productos_mes").select("*, productos(*)").order("orden"),
+      ]);
 
-      if (data) {
-        const productos = data.map((p: any) => ({
-          ...p,
-          laboratorio_nombre: p.laboratorio?.nombre,
-        }));
-        setProductosDestacados(productos);
+      if (bannerRes.data) setBanner(bannerRes.data);
+      if (categoriasRes.data) setCategorias(categoriasRes.data);
+      if (productosMesRes.data) {
+        const productos = productosMesRes.data
+          .map((p: any) => p.productos)
+          .filter(Boolean) as Producto[];
+        setProductosMes(productos);
       }
     } catch (error) {
-      console.error("Error fetching productos destacados:", error);
+      console.error("Error loading data:", error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -52,196 +56,119 @@ export default function HomePage() {
       <Header cartCount={0} />
 
       <main className="flex-1 pt-20">
-        {/* Hero Section */}
-        <section
-          className="relative py-32 text-white overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, rgba(15, 30, 15, 0.85), rgba(45, 90, 39, 0.75)), url('https://images.unsplash.com/photo-1603350514202-7091b5b1c2d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundAttachment: "fixed",
-          }}
-        >
-          <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')]"></div>
-          
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-4xl mx-auto text-center">
-              <span className="inline-block py-1 px-4 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-sm font-semibold mb-6 tracking-wider uppercase">
-                Lo mejor para tu campo
-              </span>
-              <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-lg">
-                Productos <span className="text-gradient">Naturales</span>
-                <br />para tu Bienestar
-              </h1>
-              <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-100 font-light drop-shadow-md">
-                Descubre nuestra selección de productos ecológicos y orgánicos, cuidadosamente seleccionados para garantizar la máxima calidad agrícola y veterinaria.
-              </p>
-
-              <Link
-                href="/catalogo"
-                className="inline-flex items-center bg-gradient-to-r from-[#4caf50] to-[#8bc34a] hover:from-green-500 hover:to-green-400 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/50"
-              >
-                <i className="fas fa-shopping-bag mr-2"></i>
-                Ver Catálogo
-              </Link>
-            </div>
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2d5a27]"></div>
           </div>
-        </section>
-
-        {/* Categories Section */}
-        <section className="py-20 bg-white relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-          
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center mb-16">
-              <span className="text-sm font-bold tracking-widest text-[#4caf50] uppercase mb-2 block">Explora</span>
-              <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900">Nuestras Categorías</h2>
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-8">
-              {categorias.map((cat, index) => (
-                <Link
-                  key={cat.id}
-                  href={`/catalogo?categoria=${cat.id}`}
-                  className="group bg-white border border-gray-100 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] hover:shadow-xl hover:border-[#4caf50] transition-all duration-300"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                    <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 text-gray-800">{cat.nombre}</h3>
-                  <p className="text-gray-500 text-sm">Ver productos</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Featured Products */}
-        <section className="py-24 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-14 border-b border-gray-200 pb-6">
-              <div>
-                <span className="text-sm font-bold tracking-widest text-[#4caf50] uppercase mb-2 block">Catálogo</span>
-                <h2 className="text-4xl font-extrabold text-gray-900">Productos Destacados</h2>
-              </div>
-              <Link
-                href="/catalogo"
-                className="mt-4 md:mt-0 px-6 py-2 bg-white rounded-full shadow-sm border border-gray-100 hover:shadow-md transition flex items-center gap-2 font-bold text-[#2d5a27] hover:text-[#4caf50]"
-              >
-                Ver Todos
-                <i className="fas fa-arrow-right transform group-hover:translate-x-1 transition"></i>
-              </Link>
-            </div>
-
-            {isLoading ? (
-              <div className="flex justify-center items-center py-16">
-                <i className="fas fa-circle-notch fa-spin text-4xl text-[#2d5a27]"></i>
-              </div>
-            ) : productosDestacados.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {productosDestacados.map((producto) => (
-                  <ProductCard key={producto.id} producto={producto} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 text-gray-500">
-                <i className="fas fa-box-open text-5xl mb-4 text-gray-300"></i>
-                <p>No hay productos disponibles</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="py-24 bg-white relative overflow-hidden">
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center mb-16">
-              <span className="text-sm font-bold tracking-widest text-[#4caf50] uppercase mb-2 block">Testimoniales</span>
-              <h2 className="text-4xl font-extrabold text-gray-900">Lo que dicen en el campo</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  name: "Esteban González",
-                  role: "Productor Ganadero",
-                  text: "Los productos de veterinaria son de excelente calidad. Mis animales han mejorado mucho su salud general.",
-                  avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&q=80",
-                },
-                {
-                  name: "María Rodriguez",
-                  role: "Administradora de Estancia",
-                  text: "La atención al cliente es increíble. Me explicaron al detalle la dosis exacta que necesitaba.",
-                  avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&q=80",
-                },
-                {
-                  name: "Martín Pinal",
-                  role: "Caballos y Pasturas",
-                  text: "Compro todas mis semillas y suplementos equinos en su plataforma. Siempre envían rápido.",
-                  avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=80",
-                },
-              ].map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="bg-white border border-gray-100 shadow-xl shadow-gray-200/40 p-10 rounded-3xl relative hover:-translate-y-2 hover:shadow-2xl transition-all duration-300"
-                >
-                  <i className="fas fa-quote-right absolute top-8 right-8 text-6xl text-gray-100 opacity-50"></i>
-                  <div className="relative z-10">
-                    <div className="flex text-yellow-400 mb-6 text-sm">
-                      {[...Array(5)].map((_, i) => (
-                        <i key={i} className="fas fa-star"></i>
-                      ))}
-                    </div>
-                    <p className="text-gray-600 text-lg leading-relaxed mb-8">"{testimonial.text}"</p>
-                    <div className="flex items-center">
-                      <img
-                        src={testimonial.avatar}
-                        alt={testimonial.name}
-                        className="w-14 h-14 rounded-full object-cover border-2 border-[#2d5a27]"
-                      />
-                      <div className="ml-4">
-                        <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-                        <span className="text-sm text-gray-500">{testimonial.role}</span>
-                      </div>
-                    </div>
+        ) : (
+          <>
+            {/* Banner */}
+            {banner && (
+              <section className="relative h-[70vh] min-h-[500px]">
+                <img
+                  src={banner.imagen_url}
+                  alt="Banner"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30"></div>
+                <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
+                  <div className="max-w-2xl text-white">
+                    <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
+                      {banner.titulo}
+                    </h1>
+                    <p className="text-xl md:text-2xl mb-8 text-gray-200">
+                      {banner.subtitulo}
+                    </p>
+                    <Link
+                      href={banner.enlace_boton}
+                      className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-full transition transform hover:scale-105"
+                    >
+                      {banner.texto_boton}
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </Link>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
+              </section>
+            )}
 
-        {/* Newsletter */}
-        <section className="py-20 relative overflow-hidden bg-gradient-to-br from-[#2d5a27] via-[#1b5e20] to-[#2d5a27]">
-          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-          
-          <div className="container mx-auto px-4 text-center relative z-10">
-            <i className="fas fa-envelope-open-text text-5xl text-[#8bc34a] mb-6"></i>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">Únete al Boletín del Campo</h2>
-            <p className="text-xl text-gray-200 mb-10 max-w-2xl mx-auto font-light">
-              Recibe ofertas exclusivas, información sobre productos veterinarios y las últimas novedades.
-            </p>
+            {/* Categorías */}
+            <section className="py-20 bg-white">
+              <div className="container mx-auto px-4">
+                <div className="text-center mb-12">
+                  <span className="text-sm font-bold tracking-widest text-green-600 uppercase mb-2 block">
+                    Explorá
+                  </span>
+                  <h2 className="text-4xl font-extrabold text-gray-900">
+                    Nuestras Categorías
+                  </h2>
+                </div>
 
-            <form className="max-w-xl mx-auto flex flex-col sm:flex-row gap-3 relative shadow-2xl p-2 bg-white/10 backdrop-blur-md rounded-2xl md:rounded-full border border-white/20">
-              <div className="flex-grow flex items-center relative">
-                <i className="fas fa-envelope absolute left-6 text-gray-400"></i>
-                <input
-                  type="email"
-                  placeholder="Ingresa tu correo electrónico"
-                  className="w-full pl-14 pr-6 py-4 rounded-xl md:rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8bc34a] bg-white/95 font-medium"
-                  required
-                />
+                <div className="flex flex-wrap justify-center gap-6">
+                  {categorias.map((cat) => (
+                    <Link
+                      key={cat.id}
+                      href={`/catalogo?categoria=${cat.id}`}
+                      className="group bg-white border-2 border-gray-100 rounded-2xl p-8 text-center min-w-[260px] max-w-[300px] hover:border-green-500 hover:shadow-xl transition-all duration-300"
+                    >
+                      <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                        {cat.icono_svg ? (
+                          <div
+                            className="w-10 h-10 text-green-700"
+                            dangerouslySetInnerHTML={{ __html: cat.icono_svg }}
+                          />
+                        ) : (
+                          <svg className="w-10 h-10 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                          </svg>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800 group-hover:text-green-700 transition-colors">
+                        {cat.nombre}
+                      </h3>
+                      <p className="text-sm text-gray-400 mt-1">Explorar</p>
+                    </Link>
+                  ))}
+                </div>
               </div>
-              <button
-                type="submit"
-                className="bg-gradient-to-r from-[#4caf50] to-[#8bc34a] hover:from-green-500 hover:to-green-400 text-white font-bold px-10 py-4 rounded-xl md:rounded-full transition shadow-lg whitespace-nowrap"
-              >
-                Suscribirse
-              </button>
-            </form>
-          </div>
-        </section>
+            </section>
+
+            {/* Productos del Mes */}
+            {productosMes.length > 0 && (
+              <section className="py-20 bg-gray-50">
+                <div className="container mx-auto px-4">
+                  <div className="text-center mb-12">
+                    <span className="text-sm font-bold tracking-widest text-green-600 uppercase mb-2 block">
+                      Destacados
+                    </span>
+                    <h2 className="text-4xl font-extrabold text-gray-900">
+                      Productos del Mes
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {productosMes.map((producto) => (
+                      <ProductCard key={producto.id} producto={producto} />
+                    ))}
+                  </div>
+
+                  <div className="text-center mt-12">
+                    <Link
+                      href="/catalogo"
+                      className="inline-flex items-center gap-2 px-8 py-4 border-2 border-green-600 text-green-700 font-bold rounded-full hover:bg-green-600 hover:text-white transition"
+                    >
+                      Ver Todo el Catálogo
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </main>
 
       <Footer />
