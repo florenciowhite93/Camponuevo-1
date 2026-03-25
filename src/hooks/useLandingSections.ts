@@ -23,8 +23,11 @@ export function useLandingSections(): UseLandingSectionsReturn {
   const [secciones, setSecciones] = useState<SeccionLanding[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const loadSecciones = useCallback(async () => {
+    if (isInitialized && secciones.length > 0) return;
+    
     setLoading(true);
     setError(null);
     try {
@@ -35,13 +38,14 @@ export function useLandingSections(): UseLandingSectionsReturn {
 
       if (fetchError) throw fetchError;
       setSecciones(data || []);
+      setIsInitialized(true);
     } catch (err) {
       console.error("Error loading secciones:", err);
       setError("Error al cargar secciones");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isInitialized, secciones.length]);
 
   useEffect(() => {
     loadSecciones();

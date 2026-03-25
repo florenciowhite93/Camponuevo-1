@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Edit2, Trash2, X, Save, Eye, Check } from "lucide-react";
+import { GripVertical, Edit2, Trash2, X, Save, AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLandingSections } from "@/hooks/useLandingSections";
 import { CategoriaSelector } from "@/components/admin/CategoriaSelector";
@@ -37,10 +37,11 @@ interface SortableSectionProps {
   seccion: SeccionLanding;
   onEdit: () => void;
   onDelete: () => void;
-  onToggle: () => void;
+  onToggle: (id: string) => void;
+  isToggled: boolean;
 }
 
-function SortableSection({ seccion, onEdit, onDelete, onToggle }: SortableSectionProps) {
+function SortableSection({ seccion, onEdit, onDelete, onToggle, isToggled }: SortableSectionProps) {
   const {
     attributes,
     listeners,
@@ -56,6 +57,7 @@ function SortableSection({ seccion, onEdit, onDelete, onToggle }: SortableSectio
   };
 
   const tipoInfo = tiposSeccion.find((t) => t.id === seccion.tipo);
+  const isActiva = isToggled !== undefined ? isToggled : seccion.activa;
 
   return (
     <div
@@ -78,6 +80,11 @@ function SortableSection({ seccion, onEdit, onDelete, onToggle }: SortableSectio
         <div className="flex items-center gap-2">
           <span className="font-medium">{tipoInfo?.nombre || seccion.tipo}</span>
           <span className="text-xs text-gray-400">{seccion.config?.titulo || ""}</span>
+          {isToggled !== undefined && isToggled !== seccion.activa && (
+            <span className="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded-full">
+              Modificado
+            </span>
+          )}
         </div>
         <p className="text-xs text-gray-500">{tipoInfo?.descripcion}</p>
       </div>
@@ -85,8 +92,8 @@ function SortableSection({ seccion, onEdit, onDelete, onToggle }: SortableSectio
       <label className="relative inline-flex items-center cursor-pointer">
         <input
           type="checkbox"
-          checked={seccion.activa}
-          onChange={onToggle}
+          checked={isActiva}
+          onChange={() => onToggle(seccion.id)}
           className="sr-only peer"
         />
         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
@@ -112,10 +119,17 @@ function SortableSection({ seccion, onEdit, onDelete, onToggle }: SortableSectio
 }
 
 export function LandingEditorView() {
-  const { secciones, loading, updateSeccion, reorderSecciones } = useLandingSections();
+  const { secciones: seccionesOriginales, loading, updateSeccion, reorderSecciones, loadSecciones } = useLandingSections();
+  const [secciones, setSecciones] = useState<SeccionLanding[]>([]);
+  const [toggleChanges, setToggleChanges] = useState<Record<string, boolean>>({});
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [editingSection, setEditingSection] = useState<SeccionLanding | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setSecciones(seccionesOriginales);
+  }, [seccionesOriginales]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -124,26 +138,64 @@ export function LandingEditorView() {
     })
   );
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
       const oldIndex = secciones.findIndex((s) => s.id === active.id);
       const newIndex = secciones.findIndex((s) => s.id === over.id);
       const newOrder = arrayMove(secciones, oldIndex, newIndex);
-      await reorderSecciones(newOrder.map((s) => s.id));
+      setSecciones(newOrder);
+      setHasPendingChanges(true);
     }
   };
 
-  const handleToggle = async (id: string) => {
+  const handleToggle = (id: string) => {
     const seccion = secciones.find((s) => s.id === id);
     if (seccion) {
-      await updateSeccion(id, { activa: !seccion.activa });
+      const newState = !seccion.activa;
+      setToggleChanges(prev => ({ ...prev, [id]: newState }));
+      setHasPendingChanges(true);
+    }
+  };
+
+  const handleSaveAll = async () => {
+    setSaving(true);
+    try {
+      for (const [id, activa] of Object.entries(toggleChanges)) {
+        await updateSeccion(id, { activa });
+      }
+
+      if (secciones.length > 0) {
+        for (let i = 0; i < secciones.length; i++) {
+          const seccion = secciones[i];
+          if (seccion.orden !== i) {
+            await updateSeccion(seccion.id, { orden: i });
+          }
+        }
+      }
+
+      setToggleChanges({});
+      setHasPendingChanges(false);
+      await loadSecciones();
+      window.location.reload();
+    } catch (error) {
+      console.error("Error saving:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (confirm("¿Descartar todos los cambios?")) {
+      setSecciones(seccionesOriginales);
+      setToggleChanges({});
+      setHasPendingChanges(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("¿Eliminar esta sección?")) {
+    if (confirm("¿Eliminar esta sección? Esta acción no se puede deshacer.")) {
       await fetch(`/api/landing/seccion/${id}`, { method: "DELETE" });
       window.location.reload();
     }
@@ -155,11 +207,20 @@ export function LandingEditorView() {
     try {
       await updateSeccion(editingSection.id, { config: editingSection.config });
       setEditingSection(null);
+      await loadSecciones();
+      window.location.reload();
     } catch (error) {
       console.error("Error saving:", error);
     } finally {
       setSaving(false);
     }
+  };
+
+  const getSeccionActiva = (seccion: SeccionLanding): boolean => {
+    if (toggleChanges[seccion.id] !== undefined) {
+      return toggleChanges[seccion.id];
+    }
+    return seccion.activa;
   };
 
   if (loading) {
@@ -173,10 +234,46 @@ export function LandingEditorView() {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-bold mb-2">Editor de Landing Page</h2>
-        <p className="text-sm text-gray-600 mb-6">
-          Reordena las secciones arrastrándolas. Haz clic en editar para configurar cada sección.
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold mb-1">Editor de Landing Page</h2>
+            <p className="text-sm text-gray-600">
+              Reordena las secciones arrastrándolas. Haz clic en editar para configurar cada sección.
+            </p>
+          </div>
+          
+          {hasPendingChanges && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-yellow-600">
+                <AlertCircle size={18} />
+                <span className="text-sm font-medium">Cambios sin guardar</span>
+              </div>
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 transition text-sm"
+              >
+                Descartar
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={saving}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition text-sm flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    Guardar Cambios
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
 
         <DndContext
           sensors={sensors}
@@ -194,7 +291,8 @@ export function LandingEditorView() {
                   seccion={seccion}
                   onEdit={() => setEditingSection(seccion)}
                   onDelete={() => handleDelete(seccion.id)}
-                  onToggle={() => handleToggle(seccion.id)}
+                  onToggle={handleToggle}
+                  isToggled={toggleChanges[seccion.id]}
                 />
               ))}
             </div>
@@ -204,6 +302,12 @@ export function LandingEditorView() {
         {secciones.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             <p>No hay secciones configuradas.</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+            >
+              Agregar primera sección
+            </button>
           </div>
         )}
       </div>
@@ -319,9 +423,10 @@ interface SectionEditModalProps {
 }
 
 function SectionEditModal({ seccion, onChange, onSave, onClose, saving }: SectionEditModalProps) {
-  const config = seccion.config as Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const config = seccion.config as any;
 
-  const handleConfigChange = (key: string, value: any) => {
+  const handleConfigChange = (key: string, value: unknown) => {
     onChange({ ...seccion, config: { ...config, [key]: value } as any });
   };
 
@@ -350,7 +455,7 @@ function SectionEditModal({ seccion, onChange, onSave, onClose, saving }: Sectio
               </label>
               <input
                 type="text"
-                value={config.titulo || ""}
+                value={(config.titulo as string) || ""}
                 onChange={(e) => handleConfigChange("titulo", e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -360,7 +465,7 @@ function SectionEditModal({ seccion, onChange, onSave, onClose, saving }: Sectio
                 Descripción
               </label>
               <textarea
-                value={config.descripcion || ""}
+                value={(config.descripcion as string) || ""}
                 onChange={(e) => handleConfigChange("descripcion", e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
                 rows={3}
@@ -388,7 +493,7 @@ function SectionEditModal({ seccion, onChange, onSave, onClose, saving }: Sectio
             onClick={onClose}
             className="px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-100 transition"
           >
-            Cancelar
+            Cerrar
           </button>
           <button
             onClick={onSave}
