@@ -184,7 +184,6 @@ export default function HomePage() {
               {categorias.map((cat, index) => (
                 <motion.div
                   key={cat.id}
-                  className="w-full"
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
