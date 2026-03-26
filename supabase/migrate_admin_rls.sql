@@ -147,13 +147,19 @@ CREATE POLICY "direcciones_delete" ON public.direcciones
 
 -- ============================================
 -- LANDING SECCIONES (contenido público)
+-- Solo ejecutar si existe la tabla
 -- ============================================
-ALTER TABLE public.landing_secciones ENABLE ROW LEVEL SECURITY;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'landing_secciones') THEN
+    ALTER TABLE public.landing_secciones ENABLE ROW LEVEL SECURITY;
+    
+    DROP POLICY IF EXISTS "landing_secciones_public_read" ON public.landing_secciones;
+    CREATE POLICY "landing_secciones_public_read" ON public.landing_secciones
+      FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "landing_secciones_public_read" ON public.landing_secciones;
-CREATE POLICY "landing_secciones_public_read" ON public.landing_secciones
-  FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "landing_secciones_admin_all" ON public.landing_secciones;
-CREATE POLICY "landing_secciones_admin_all" ON public.landing_secciones
-  FOR ALL USING (public.is_admin());
+    DROP POLICY IF EXISTS "landing_secciones_admin_all" ON public.landing_secciones;
+    CREATE POLICY "landing_secciones_admin_all" ON public.landing_secciones
+      FOR ALL USING (public.is_admin());
+  END IF;
+END $$;
