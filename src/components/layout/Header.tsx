@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, createSlug } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import type { Producto } from "@/types";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -335,10 +335,12 @@ export function Header({ cartCount = 0 }: HeaderProps) {
                           </div>
                         )
                       ) : searchResults.length > 0 ? (
-                        searchResults.map((product) => (
+                        searchResults.map((product) => {
+                          const productSlug = `${createSlug(product.titulo)}-${product.id.slice(0, 8)}`;
+                          return (
                           <Link
                             key={product.id}
-                            href={`/catalogo/${product.id}`}
+                            href={`/catalogo/${productSlug}`}
                             onClick={() => {
                               setIsSearchOpen(false);
                               setSearchTerm("");
@@ -370,7 +372,8 @@ export function Header({ cartCount = 0 }: HeaderProps) {
                               {product.precio > 0 ? formatPrice(product.precio) : "Consultar"}
                             </div>
                           </Link>
-                        ))
+                          );
+                        })
                       ) : (
                         <div className="p-4 text-center text-gray-500 text-sm italic">
                           No se encontraron productos para &quot;{searchTerm}&quot;

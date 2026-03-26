@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { cn, createSlug } from "@/lib/utils";
 import type { Producto, Especie } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,6 +34,8 @@ interface Etiqueta {
 export function ProductCard({ producto, className, showAddToCart = true }: ProductCardProps) {
   const { addItem } = useCarrito();
   const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
+
+  const productoSlug = `${createSlug(producto.titulo)}-${producto.id.slice(0, 8)}`;
 
   useEffect(() => {
     if (producto.etiquetas_ids && producto.etiquetas_ids.length > 0) {
@@ -68,7 +70,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
         className
       )}
     >
-      <Link href={`/catalogo/${producto.id}`} className="block relative h-56 overflow-hidden bg-white border-b border-gray-100 flex items-center justify-center">
+      <Link href={`/catalogo/${productoSlug}`} className="block relative h-56 overflow-hidden bg-white border-b border-gray-100 flex items-center justify-center">
         {/* Etiquetas en borde superior izquierdo */}
         {etiquetas.length > 0 && (
           <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-20 max-w-[70%]">
@@ -126,7 +128,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
           </div>
         </div>
         
-        <Link href={`/catalogo/${producto.id}`}>
+        <Link href={`/catalogo/${productoSlug}`}>
           <h3 className="text-xl font-bold mb-2 text-gray-800 line-clamp-2 hover:text-[#2d5a27] transition">
             {producto.titulo}
           </h3>
@@ -160,7 +162,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
             </button>
           ) : (
             <Link 
-              href={`/catalogo/${producto.id}`}
+              href={`/catalogo/${productoSlug}`}
               className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-5 py-2 rounded-full transition text-sm font-semibold shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
             >
               Ver más

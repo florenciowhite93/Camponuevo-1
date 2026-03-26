@@ -1,19 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useCarrito } from "@/context/CarritoContext";
+import { ProductCard } from "@/components/ProductCard";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { ProductCard } from "@/components/ProductCard";
-import { useCarrito } from "@/context/CarritoContext";
 import { ShoppingCart, ChevronDown, ExternalLink, Minus, Plus, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Producto } from "@/types";
-import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient();
 const WHATSAPP_NUMBER = "1144096789";
 
 const especieIcons: Record<string, string> = {
@@ -34,68 +31,23 @@ const especieLabels: Record<string, string> = {
   canino: "Canino",
 };
 
-export default function ProductPage() {
-  const params = useParams();
+interface Etiqueta {
+  id: string;
+  nombre: string;
+  color: string;
+}
+
+interface ProductContentProps {
+  producto: Producto;
+  etiquetas: Etiqueta[];
+  productosRelacionados: Producto[];
+}
+
+export function ProductContent({ producto, etiquetas, productosRelacionados }: ProductContentProps) {
   const { addItem } = useCarrito();
-  const [producto, setProducto] = useState<Producto | null>(null);
-  const [productosRelacionados, setProductosRelacionados] = useState<Producto[]>([]);
   const [cantidad, setCantidad] = useState(1);
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
   const [addedToCart, setAddedToCart] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [etiquetas, setEtiquetas] = useState<{id: string, nombre: string, color: string}[]>([]);
-
-  useEffect(() => {
-    if (params.id) {
-      fetchProducto(params.id as string);
-    }
-  }, [params.id]);
-
-  const fetchProducto = async (id: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("productos")
-        .select(`*, laboratorio:laboratorios(nombre)`)
-        .eq("id", id)
-        .single();
-
-      if (data) {
-        const productoData = {
-          ...data,
-          laboratorio_nombre: data.laboratorio?.nombre,
-        };
-        setProducto(productoData);
-
-        // Fetch etiquetas
-        if (data.etiquetas_ids && data.etiquetas_ids.length > 0) {
-          const { data: etiquetasData } = await supabase
-            .from("etiquetas")
-            .select("*")
-            .in("id", data.etiquetas_ids);
-          if (etiquetasData) setEtiquetas(etiquetasData);
-        }
-        
-        // Fetch relacionados (mismo laboratorio o mismas especies)
-        const { data: relacionados } = await supabase
-          .from("productos")
-          .select(`*, laboratorio:laboratorios(nombre)`)
-          .eq("visible", true)
-          .neq("id", id)
-          .limit(4);
-        
-        if (relacionados) {
-          setProductosRelacionados(relacionados.map((p: any) => ({
-            ...p,
-            laboratorio_nombre: p.laboratorio?.nombre,
-          })));
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching producto:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-AR", {
@@ -105,53 +57,17 @@ export default function ProductPage() {
   };
 
   const handleAddToCart = () => {
-    if (producto) {
-      addItem(producto, cantidad);
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-    }
+    addItem(producto, cantidad);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
   };
 
   const getWhatsAppLink = () => {
-    if (!producto) return "#";
     const message = encodeURIComponent(
       `Hola! Me interesa el producto: ${producto.titulo} (${producto.volumen || ""}) - ${formatPrice(producto.precio)}`
     );
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
   };
-
-  if (isLoading) {
-    return (
-      <>
-        <Header />
-        <main className="flex-1 pt-20 flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <i className="fas fa-circle-notch fa-spin text-5xl text-[#2d5a27]"></i>
-            <p className="mt-4 text-gray-500">Cargando producto...</p>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  if (!producto) {
-    return (
-      <>
-        <Header />
-        <main className="flex-1 pt-20 flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <i className="fas fa-box-open text-5xl text-gray-300 mb-4"></i>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Producto no encontrado</h1>
-            <Link href="/catalogo" className="text-[#2d5a27] hover:underline">
-              Volver al catálogo
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
 
   return (
     <>
@@ -211,7 +127,6 @@ export default function ProductPage() {
                   {producto.titulo}
                 </h1>
 
-                {/* Etiquetas junto al título */}
                 {etiquetas.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {etiquetas.map((etq) => (
