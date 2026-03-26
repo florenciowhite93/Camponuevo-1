@@ -87,12 +87,12 @@ ALTER TABLE public.pedidos ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "pedidos_read" ON public.pedidos;
 CREATE POLICY "pedidos_read" ON public.pedidos
   FOR SELECT USING (
-    auth.uid() = cliente_id OR public.is_admin()
+    auth.uid() = usuario_id OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "pedidos_insert" ON public.pedidos;
 CREATE POLICY "pedidos_insert" ON public.pedidos
-  FOR INSERT WITH CHECK (auth.uid() = cliente_id);
+  FOR INSERT WITH CHECK (auth.uid() = usuario_id);
 
 DROP POLICY IF EXISTS "pedidos_update" ON public.pedidos;
 CREATE POLICY "pedidos_update" ON public.pedidos
