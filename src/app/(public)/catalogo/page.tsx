@@ -31,6 +31,7 @@ export default function CatalogoPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [filteredCount, setFilteredCount] = useState(0);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLabs, setSelectedLabs] = useState<string>("");
@@ -164,19 +165,47 @@ export default function CatalogoPage() {
       let query = supabase
         .from("productos")
         .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
-        .eq("visible", true)
-        .order("created_at", { ascending: false });
+        .eq("visible", true);
 
-      const { data, count } = await query;
+      if (searchTerm) {
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%`);
+      }
+      if (selectedLabs) {
+        query = query.eq("laboratorio_id", selectedLabs);
+      }
+      if (selectedEspecies.length > 0) {
+        query = query.contains("especies", selectedEspecies);
+      }
+      if (selectedCategorias) {
+        const subcatIds = subcategorias.filter(s => s.categoria_id === selectedCategorias).map(s => s.id);
+        query = query.overlaps("subcategorias_ids", subcatIds);
+      }
+      if (selectedSubcategorias) {
+        query = query.contains("subcategorias_ids", [selectedSubcategorias]);
+      }
+
+      const { data, count, error } = await query;
+
+      if (error) {
+        console.error("Error fetching filtered products:", error);
+        return;
+      }
 
       if (data) {
         const productosConLab = data.map((p: { laboratorio?: { nombre: string } } & Producto) => ({
           ...p,
           laboratorio_nombre: p.laboratorio?.nombre,
         }));
+        productosConLab.sort((a, b) => {
+          if (sortBy === "name_asc") return a.titulo.localeCompare(b.titulo);
+          if (sortBy === "price_asc") return a.precio - b.precio;
+          if (sortBy === "price_desc") return b.precio - a.precio;
+          return (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+        });
         setAllProductos(productosConLab);
         setDisplayedProductos(productosConLab);
         setTotalCount(count || 0);
+        setFilteredCount(count || 0);
         setHasMore(false);
       }
     } catch (error) {
@@ -244,6 +273,8 @@ export default function CatalogoPage() {
     setSelectedSubcategorias("");
     setSearchTerm("");
     setSortBy("newest");
+    setFilteredCount(0);
+    fetchInitialData();
   };
 
   const getSelectedEspeciesText = () => {
@@ -401,8 +432,10 @@ export default function CatalogoPage() {
               <div className="mb-2 sm:mb-0">
                 {loading ? (
                   <span>Cargando...</span>
+                ) : hasActiveFilters() ? (
+                  <><span className="font-bold text-gray-800">{filteredCount}</span> productos encontrados</>
                 ) : (
-                  <>Mostrando <span className="font-bold text-gray-800">{filteredProducts.length}</span> productos</>
+                  <>Mostrando <span className="font-bold text-gray-800">{filteredProducts.length}</span> de <span className="font-bold text-gray-800">{totalCount}</span> productos</>
                 )}
               </div>
               <div className="flex items-center gap-3">
