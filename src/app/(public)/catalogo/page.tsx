@@ -73,8 +73,12 @@ export default function CatalogoPage() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !hasActiveFilters()) {
-          loadMoreProducts();
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          if (hasActiveFilters()) {
+            loadMoreFilteredProducts();
+          } else {
+            loadMoreProducts();
+          }
         }
       },
       { threshold: 0.1 }
@@ -159,9 +163,11 @@ export default function CatalogoPage() {
     }
   };
 
-  const loadFilteredProducts = async () => {
+  const loadFilteredProducts = async (reset = false) => {
     try {
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+      }
       let query = supabase
         .from("productos")
         .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
@@ -184,7 +190,9 @@ export default function CatalogoPage() {
         query = query.contains("subcategorias_ids", [selectedSubcategorias]);
       }
 
-      const { data, count, error } = await query;
+      const from = 0;
+      const to = PAGE_SIZE - 1;
+      const { data, count, error } = await query.range(from, to);
 
       if (error) {
         console.error("Error fetching filtered products:", error);
@@ -206,7 +214,7 @@ export default function CatalogoPage() {
         setDisplayedProductos(productosConLab);
         setTotalCount(count || 0);
         setFilteredCount(count || 0);
-        setHasMore(false);
+        setHasMore((data.length || 0) < (count || 0));
       }
     } catch (error) {
       console.error("Error fetching filtered products:", error);
@@ -215,9 +223,69 @@ export default function CatalogoPage() {
     }
   };
 
+  const loadMoreFilteredProducts = async () => {
+    if (loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      const from = displayedProductos.length;
+      const to = from + PAGE_SIZE - 1;
+
+      let query = supabase
+        .from("productos")
+        .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
+        .eq("visible", true);
+
+      if (searchTerm) {
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%`);
+      }
+      if (selectedLabs) {
+        query = query.eq("laboratorio_id", selectedLabs);
+      }
+      if (selectedEspecies.length > 0) {
+        query = query.contains("especies", selectedEspecies);
+      }
+      if (selectedCategorias) {
+        const subcatIds = subcategorias.filter(s => s.categoria_id === selectedCategorias).map(s => s.id);
+        query = query.overlaps("subcategorias_ids", subcatIds);
+      }
+      if (selectedSubcategorias) {
+        query = query.contains("subcategorias_ids", [selectedSubcategorias]);
+      }
+
+      const { data, count, error } = await query.range(from, to);
+
+      if (error) {
+        console.error("Error loading more filtered products:", error);
+        return;
+      }
+
+      if (data) {
+        const productosConLab = data.map((p: { laboratorio?: { nombre: string } } & Producto) => ({
+          ...p,
+          laboratorio_nombre: p.laboratorio?.nombre,
+        }));
+        productosConLab.sort((a, b) => {
+          if (sortBy === "name_asc") return a.titulo.localeCompare(b.titulo);
+          if (sortBy === "price_asc") return a.precio - b.precio;
+          if (sortBy === "price_desc") return b.precio - a.precio;
+          return (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+        });
+        setAllProductos(prev => [...prev, ...productosConLab]);
+        setDisplayedProductos(prev => [...prev, ...productosConLab]);
+        setHasMore(data.length === PAGE_SIZE && displayedProductos.length + data.length < (count || 0));
+        setFilteredCount(count || 0);
+      }
+    } catch (error) {
+      console.error("Error loading more filtered products:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   useEffect(() => {
     if (hasActiveFilters()) {
-      loadFilteredProducts();
+      loadFilteredProducts(true);
     } else {
       if (allProductos.length === 0) {
         fetchInitialData();
@@ -226,7 +294,7 @@ export default function CatalogoPage() {
         setHasMore(allProductos.length < totalCount);
       }
     }
-  }, [searchTerm, selectedLabs, selectedEspecies, selectedCategorias, selectedSubcategorias]);
+  }, [searchTerm, selectedLabs, selectedEspecies, selectedCategorias, selectedSubcategorias, sortBy]);
 
   const filteredProducts = displayedProductos
     .filter((p) => {
@@ -466,7 +534,7 @@ export default function CatalogoPage() {
                   ))}
                 </div>
                 
-                {hasMore && !hasActiveFilters() && (
+                {hasMore && (
                   <div ref={loadMoreRef} className="mt-8 flex justify-center">
                     {loadingMore ? (
                       <div className="flex items-center gap-2 text-gray-500">
@@ -479,7 +547,7 @@ export default function CatalogoPage() {
                   </div>
                 )}
 
-                {hasMore && !hasActiveFilters() && !loadingMore && (
+                {hasMore && !loadingMore && (
                   <div className="mt-4 text-center text-sm text-gray-500">
                     <span>Scroll para cargar más productos</span>
                   </div>
