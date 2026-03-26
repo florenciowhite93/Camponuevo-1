@@ -43,6 +43,7 @@ export default function ProductPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [etiquetas, setEtiquetas] = useState<{id: string, nombre: string, color: string}[]>([]);
 
   useEffect(() => {
     if (params.id) {
@@ -64,6 +65,15 @@ export default function ProductPage() {
           laboratorio_nombre: data.laboratorio?.nombre,
         };
         setProducto(productoData);
+
+        // Fetch etiquetas
+        if (data.etiquetas_ids && data.etiquetas_ids.length > 0) {
+          const { data: etiquetasData } = await supabase
+            .from("etiquetas")
+            .select("*")
+            .in("id", data.etiquetas_ids);
+          if (etiquetasData) setEtiquetas(etiquetasData);
+        }
         
         // Fetch relacionados (mismo laboratorio o mismas especies)
         const { data: relacionados } = await supabase
@@ -200,6 +210,21 @@ export default function ProductPage() {
                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
                   {producto.titulo}
                 </h1>
+
+                {/* Etiquetas junto al título */}
+                {etiquetas.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {etiquetas.map((etq) => (
+                      <span
+                        key={etq.id}
+                        className="px-3 py-1 rounded-md text-sm font-semibold text-white"
+                        style={{ backgroundColor: etq.color }}
+                      >
+                        {etq.nombre}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {producto.volumen && (
                   <p className="text-lg text-gray-500 mb-4">{producto.volumen}</p>

@@ -1,10 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import type { Producto, Especie } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
 import { useCarrito } from "@/context/CarritoContext";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 interface ProductCardProps {
   producto: Producto;
@@ -21,8 +25,27 @@ const especieIconos: Record<Especie, string> = {
   felino: "/svg/Felino.svg",
 };
 
+interface Etiqueta {
+  id: string;
+  nombre: string;
+  color: string;
+}
+
 export function ProductCard({ producto, className, showAddToCart = true }: ProductCardProps) {
   const { addItem } = useCarrito();
+  const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
+
+  useEffect(() => {
+    if (producto.etiquetas_ids && producto.etiquetas_ids.length > 0) {
+      supabase
+        .from("etiquetas")
+        .select("*")
+        .in("id", producto.etiquetas_ids)
+        .then(({ data }) => {
+          if (data) setEtiquetas(data);
+        });
+    }
+  }, [producto.etiquetas_ids]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-AR", {
@@ -46,6 +69,21 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
       )}
     >
       <Link href={`/catalogo/${producto.id}`} className="block relative h-56 overflow-hidden bg-white border-b border-gray-100 flex items-center justify-center">
+        {/* Etiquetas en borde superior izquierdo */}
+        {etiquetas.length > 0 && (
+          <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-20 max-w-[70%]">
+            {etiquetas.slice(0, 3).map((etq) => (
+              <span
+                key={etq.id}
+                className="px-2 py-1 rounded-md text-xs font-semibold text-white shadow-sm"
+                style={{ backgroundColor: etq.color }}
+              >
+                {etq.nombre}
+              </span>
+            ))}
+          </div>
+        )}
+
         {producto.imagen ? (
           <Image
             src={producto.imagen}
