@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 export default function NosotrosPage() {
   const [formData, setFormData] = useState({
@@ -123,7 +124,12 @@ export default function NosotrosPage() {
                   transition={{ duration: 0.4, delay: 0.4 }}
                   whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
                 >
-                  <h3 className="text-4xl font-black text-[#2d5a27] mb-1">+35</h3>
+                  <AnimatedCounter 
+                    end={35} 
+                    prefix="+" 
+                    duration={2000}
+                    className="text-4xl font-black text-[#2d5a27] mb-1 block"
+                  />
                   <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Años</p>
                 </motion.div>
                 <motion.div 
@@ -134,7 +140,13 @@ export default function NosotrosPage() {
                   transition={{ duration: 0.4, delay: 0.5 }}
                   whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
                 >
-                  <h3 className="text-4xl font-black text-[#4caf50] mb-1">+5k</h3>
+                  <AnimatedCounter 
+                    end={5000} 
+                    prefix="+" 
+                    separator="."
+                    duration={2000}
+                    className="text-4xl font-black text-[#4caf50] mb-1 block"
+                  />
                   <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest">Clientes</p>
                 </motion.div>
               </div>
