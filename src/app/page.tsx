@@ -181,33 +181,27 @@ export default function HomePage() {
             </motion.div>
 
             <div className="flex flex-wrap justify-center gap-8">
-              {categorias.map((cat, index) => (
-                <motion.div
+              {categorias.map((cat) => (
+                <Link
                   key={cat.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  href={`/catalogo?categoria=${cat.id}`}
+                  className="group bg-white border border-gray-100 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] hover:shadow-xl hover:border-[#4caf50] transition-all duration-300"
+                  style={{ animationDelay: `${0}s` }}
                 >
-                  <Link
-                    href={`/catalogo?categoria=${cat.id}`}
-                    className="group bg-white border border-gray-100 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] hover:shadow-xl hover:border-[#4caf50] transition-all duration-300"
-                  >
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
-                      {cat.icono_svg ? (
-                        <img
-                          src={cat.icono_svg}
-                          alt={cat.nombre}
-                          className="w-12 h-12 object-contain"
-                        />
-                      ) : (
-                        <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
-                      )}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 text-gray-800">{cat.nombre}</h3>
-                    <p className="text-gray-500 text-sm">Ver productos</p>
-                  </Link>
-                </motion.div>
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
+                    {cat.icono_svg ? (
+                      <img
+                        src={cat.icono_svg}
+                        alt={cat.nombre}
+                        className="w-12 h-12 object-contain"
+                      />
+                    ) : (
+                      <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
+                    )}
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-gray-800">{cat.nombre}</h3>
+                  <p className="text-gray-500 text-sm">Ver productos</p>
+                </Link>
               ))}
             </div>
           </div>
