@@ -1,10 +1,27 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Save, Check, ChevronDown } from "lucide-react";
+import { Save, Check, ChevronDown, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { IconPicker } from "@/components/admin/IconPicker";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const supabase = createClient();
 
@@ -26,6 +43,76 @@ interface HomeConfig {
   };
 }
 
+interface SortableCategoriaItemProps {
+  cat: Categoria;
+  isSelected: boolean;
+  onToggle: () => void;
+  onEditIcon: () => void;
+}
+
+function SortableCategoriaItem({ cat, isSelected, onToggle, onEditIcon }: SortableCategoriaItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: cat.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-4 p-4 rounded-xl border transition",
+        isDragging ? "ring-2 ring-green-500 shadow-lg" : "",
+        isSelected ? "bg-green-50 border-green-300" : "bg-gray-50 border-gray-200"
+      )}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab hover:bg-gray-100 p-1 rounded"
+      >
+        <GripVertical size={20} className="text-gray-400" />
+      </button>
+
+      <button
+        onClick={onToggle}
+        className={cn(
+          "w-6 h-6 rounded border-2 flex items-center justify-center transition",
+          isSelected ? "bg-green-600 border-green-600" : "border-gray-300"
+        )}
+      >
+        {isSelected && <Check size={14} className="text-white" />}
+      </button>
+
+      <button
+        onClick={onEditIcon}
+        className="w-12 h-12 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:border-green-400 transition overflow-hidden"
+      >
+        {cat.icono_svg ? (
+          <img src={cat.icono_svg} alt={cat.nombre} className="w-7 h-7 object-contain" />
+        ) : (
+          <span className="text-lg">🌿</span>
+        )}
+      </button>
+
+      <span className="flex-1 font-medium">{cat.nombre}</span>
+      <span className="text-sm text-gray-400">
+        {cat.subcategorias?.length || 0} subcategorías
+      </span>
+    </div>
+  );
+}
+
 export function LandingEditor() {
   const [config, setConfig] = useState<HomeConfig | null>(null);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -34,6 +121,31 @@ export function LandingEditor() {
   const [saving, setSaving] = useState(false);
   const [editingIcon, setEditingIcon] = useState<{ id: string; svg: string; nombre: string } | null>(null);
   const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [ordenesActualizados, setOrdenesActualizados] = useState<Record<string, number>>({});
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categorias.findIndex(c => c.id === active.id);
+    const newIndex = categorias.findIndex(c => c.id === over.id);
+    
+    const newOrden = arrayMove(categorias, oldIndex, newIndex);
+    setCategorias(newOrden);
+
+    const nuevosOrdenes: Record<string, number> = {};
+    newOrden.forEach((cat, idx) => {
+      nuevosOrdenes[cat.id] = idx;
+    });
+    setOrdenesActualizados(nuevosOrdenes);
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -168,6 +280,15 @@ export function LandingEditor() {
       }
 
       setSaveMessage({ type: "success", text: "Cambios guardados correctamente" });
+      
+      if (Object.keys(ordenesActualizados).length > 0) {
+        const updates = Object.entries(ordenesActualizados).map(([id, orden]) =>
+          supabase.from("categorias").update({ orden }).eq("id", id)
+        );
+        await Promise.all(updates);
+        setOrdenesActualizados({});
+      }
+      
       await loadData();
     } catch (error) {
       console.error("Error saving:", error);
@@ -269,47 +390,29 @@ export function LandingEditor() {
           />
         </div>
 
-        <h3 className="text-lg font-semibold mb-4">Categorías</h3>
-        <div className="space-y-2">
-          {categorias.map((cat) => {
-            const isSelected = config.categorias_seccion.categorias_ids.includes(cat.id);
-            return (
-              <div
-                key={cat.id}
-                className={cn(
-                  "flex items-center gap-4 p-4 rounded-xl border transition",
-                  isSelected ? "bg-green-50 border-green-300" : "bg-gray-50 border-gray-200"
-                )}
-              >
-                <button
-                  onClick={() => toggleCategoria(cat.id)}
-                  className={cn(
-                    "w-6 h-6 rounded border-2 flex items-center justify-center transition",
-                    isSelected ? "bg-green-600 border-green-600" : "border-gray-300"
-                  )}
-                >
-                  {isSelected && <Check size={14} className="text-white" />}
-                </button>
-
-                <button
-                  onClick={() => setEditingIcon({ id: cat.id, svg: cat.icono_svg, nombre: cat.nombre })}
-                  className="w-12 h-12 flex items-center justify-center rounded-lg bg-white border border-gray-200 hover:border-green-400 transition overflow-hidden"
-                >
-                  {cat.icono_svg ? (
-                    <img src={cat.icono_svg} alt={cat.nombre} className="w-7 h-7 object-contain" />
-                  ) : (
-                    <span className="text-lg">🌿</span>
-                  )}
-                </button>
-
-                <span className="flex-1 font-medium">{cat.nombre}</span>
-                <span className="text-sm text-gray-400">
-                  {cat.subcategorias?.length || 0} subcategorías
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <h3 className="text-lg font-semibold mb-4">Categorías (drag para reordenar)</h3>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={categorias.map(c => c.id)} strategy={horizontalListSortingStrategy}>
+            <div className="space-y-2">
+              {categorias.map((cat) => {
+                const isSelected = config.categorias_seccion.categorias_ids.includes(cat.id);
+                return (
+                  <SortableCategoriaItem
+                    key={cat.id}
+                    cat={cat}
+                    isSelected={isSelected}
+                    onToggle={() => toggleCategoria(cat.id)}
+                    onEditIcon={() => setEditingIcon({ id: cat.id, svg: cat.icono_svg, nombre: cat.nombre })}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       {/* Productos Section */}
