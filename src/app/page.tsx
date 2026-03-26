@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/ProductCard";
@@ -118,24 +119,47 @@ export default function HomePage() {
           
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              <span className="inline-block py-1 px-4 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-sm font-semibold mb-6 tracking-wider uppercase">
+              <motion.span 
+                className="inline-block py-1 px-4 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-sm font-semibold mb-6 tracking-wider uppercase"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
                 Lo mejor para tu campo
-              </span>
-              <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-lg">
+              </motion.span>
+              
+              <motion.h1 
+                className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight drop-shadow-lg"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.15 }}
+              >
                 Productos <span className="text-gradient">Naturales</span>
                 <br />para tu Bienestar
-              </h1>
-              <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-100 font-light drop-shadow-md">
-                Descubre nuestra selección de productos ecológicos y orgánicos, cuidadosamente seleccionados para garantizar la máxima calidad agrícola y veterinaria.
-              </p>
-
-              <Link
-                href="/catalogo"
-                className="inline-flex items-center bg-gradient-to-r from-[#4caf50] to-[#8bc34a] hover:from-green-500 hover:to-green-400 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/50"
+              </motion.h1>
+              
+              <motion.p 
+                className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-100 font-light drop-shadow-md"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
               >
-                <i className="fas fa-shopping-bag mr-2"></i>
-                Ver Catálogo
-              </Link>
+                Descubre nuestra selección de productos ecológicos y orgánicos, cuidadosamente seleccionados para garantizar la máxima calidad agrícola y veterinaria.
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+              >
+                <Link
+                  href="/catalogo"
+                  className="inline-flex items-center bg-gradient-to-r from-[#4caf50] to-[#8bc34a] hover:from-green-500 hover:to-green-400 text-white font-bold py-4 px-10 rounded-full transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/50"
+                >
+                  <i className="fas fa-shopping-bag mr-2"></i>
+                  Ver Catálogo
+                </Link>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -145,33 +169,45 @@ export default function HomePage() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
           
           <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center mb-16">
+            <motion.div 
+              className="text-center mb-16"
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
               <span className="text-sm font-bold tracking-widest text-[#4caf50] uppercase mb-2 block">Explora</span>
               <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900">{categoriasTitulo}</h2>
-            </div>
+            </motion.div>
 
             <div className="flex flex-wrap justify-center gap-8">
               {categorias.map((cat, index) => (
-                <Link
+                <motion.div
                   key={cat.id}
-                  href={`/catalogo?categoria=${cat.id}`}
-                  className="group bg-white border border-gray-100 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] hover:shadow-xl hover:border-[#4caf50] transition-all duration-300"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
-                    {cat.icono_svg ? (
-                      <img
-                        src={cat.icono_svg}
-                        alt={cat.nombre}
-                        className="w-12 h-12 object-contain"
-                      />
-                    ) : (
-                      <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
-                    )}
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 text-gray-800">{cat.nombre}</h3>
-                  <p className="text-gray-500 text-sm">Ver productos</p>
-                </Link>
+                  <Link
+                    href={`/catalogo?categoria=${cat.id}`}
+                    className="group bg-white border border-gray-100 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] hover:shadow-xl hover:border-[#4caf50] transition-all duration-300"
+                  >
+                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
+                      {cat.icono_svg ? (
+                        <img
+                          src={cat.icono_svg}
+                          alt={cat.nombre}
+                          className="w-12 h-12 object-contain"
+                        />
+                      ) : (
+                        <i className="fas fa-leaf text-[#2d5a27] text-4xl group-hover:rotate-12 transition-transform"></i>
+                      )}
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 text-gray-800">{cat.nombre}</h3>
+                    <p className="text-gray-500 text-sm">Ver productos</p>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -180,7 +216,13 @@ export default function HomePage() {
         {/* Featured Products */}
         <section className="py-24 bg-gray-50">
           <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-14 border-b border-gray-200 pb-6">
+            <motion.div 
+              className="flex flex-col md:flex-row justify-between items-end mb-14 border-b border-gray-200 pb-6"
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
               <div>
                 <span className="text-sm font-bold tracking-widest text-[#4caf50] uppercase mb-2 block">Catálogo</span>
                 <h2 className="text-4xl font-extrabold text-gray-900">{productosTitulo}</h2>
@@ -192,23 +234,40 @@ export default function HomePage() {
                 Ver Todos
                 <i className="fas fa-arrow-right transform group-hover:translate-x-1 transition"></i>
               </Link>
-            </div>
+            </motion.div>
 
             {loading ? (
-              <div className="flex justify-center items-center py-16">
+              <motion.div 
+                className="flex justify-center items-center py-16"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
                 <i className="fas fa-circle-notch fa-spin text-4xl text-[#2d5a27]"></i>
-              </div>
+              </motion.div>
             ) : productosDestacados.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {productosDestacados.map((producto) => (
-                  <ProductCard key={producto.id} producto={producto} />
+                {productosDestacados.map((producto, index) => (
+                  <motion.div
+                    key={producto.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.08 }}
+                  >
+                    <ProductCard producto={producto} />
+                  </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 text-gray-500">
+              <motion.div 
+                className="text-center py-16 text-gray-500"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+              >
                 <i className="fas fa-box-open text-5xl mb-4 text-gray-300"></i>
                 <p>No hay productos disponibles</p>
-              </div>
+              </motion.div>
             )}
           </div>
         </section>
