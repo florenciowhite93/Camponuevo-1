@@ -36,6 +36,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [activeView, setActiveView] = useState<AdminView>("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -129,12 +130,30 @@ export default function AdminPage() {
   const checkAuth = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        await fetchAllData();
+      
+      if (!user) {
+        router.push("/login?redirect=/admin");
+        return;
       }
+
+      setUser(user);
+
+      const { data: perfil, error } = await supabase
+        .from("perfiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+
+      if (error || !perfil?.is_admin) {
+        router.push("/?error=unauthorized");
+        return;
+      }
+
+      setIsAdmin(true);
+      await fetchAllData();
     } catch (error) {
       console.error("Auth error:", error);
+      router.push("/");
     } finally {
       setLoading(false);
     }
@@ -670,15 +689,15 @@ export default function AdminPage() {
     );
   }
 
-  if (!user) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full text-center">
           <i className="fas fa-lock text-5xl text-gray-300 mb-4"></i>
           <h2 className="text-2xl font-bold mb-2">Acceso Restringido</h2>
-          <p className="text-gray-600 mb-6">Iniciá sesión para acceder al panel de administración</p>
-          <Link href="/login" className="bg-[#2d5a27] text-white px-6 py-3 rounded-xl font-medium">
-            Iniciar Sesión
+          <p className="text-gray-600 mb-6">No tenés permisos para acceder al panel de administración</p>
+          <Link href="/" className="bg-[#2d5a27] text-white px-6 py-3 rounded-xl font-medium">
+            Volver al Inicio
           </Link>
         </div>
       </div>
