@@ -302,6 +302,38 @@ export default function AdminPage() {
     }
   };
 
+  // --- CREAR DIRECTO (SIN MODAL) ---
+  const handleCreateCategory = async () => {
+    if (!categoryForm.nombre.trim()) return;
+    await supabase.from("categorias").insert({ nombre: categoryForm.nombre.trim() });
+    setCategoryForm({ nombre: "", icono_svg: "" });
+    await fetchAllData();
+  };
+
+  const handleCreateSubcategory = async () => {
+    if (!subcategoryForm.nombre.trim() || !subcategoryForm.categoria_id) return;
+    await supabase.from("subcategorias").insert({ 
+      nombre: subcategoryForm.nombre.trim(), 
+      categoria_id: subcategoryForm.categoria_id 
+    });
+    setSubcategoryForm({ nombre: "", categoria_id: "" });
+    await fetchAllData();
+  };
+
+  const handleCreateLab = async () => {
+    if (!labForm.nombre.trim()) return;
+    await supabase.from("laboratorios").insert({ nombre: labForm.nombre.trim() });
+    setLabForm({ nombre: "" });
+    await fetchAllData();
+  };
+
+  const handleCreateEtiqueta = async () => {
+    if (!etiquetaForm.nombre.trim()) return;
+    await supabase.from("etiquetas").insert({ nombre: etiquetaForm.nombre.trim(), color: etiquetaForm.color });
+    setEtiquetaForm({ nombre: "", color: "#2d5a27" });
+    await fetchAllData();
+  };
+
   // --- SUBCATEGORÍAS ---
   const openSubcategoryModal = (subcategory?: any) => {
     if (subcategory) {
@@ -911,13 +943,13 @@ export default function AdminPage() {
 
           {/* CATEGORÍAS */}
           {activeView === "categorias" && (
-            <div className="max-w-4xl">
+            <div className="max-w-4xl mx-auto">
               <div className="bg-white rounded-xl p-6 mb-6">
                 <h3 className="font-semibold mb-4">Agregar nueva categoría</h3>
                 <div className="flex gap-3">
                   <input type="text" placeholder="Nombre de la categoría..." value={categoryForm.nombre} onChange={(e) => setCategoryForm({ ...categoryForm, nombre: e.target.value })}
                     className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
-                  <button onClick={() => openCategoryModal()} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition"><Plus size={18} /></button>
+                  <button onClick={handleCreateCategory} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition">Crear</button>
                 </div>
               </div>
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -944,7 +976,7 @@ export default function AdminPage() {
 
           {/* SUBCATEGORÍAS */}
           {activeView === "subcategorias" && (
-            <div className="max-w-4xl">
+            <div className="max-w-4xl mx-auto">
               <div className="bg-white rounded-xl p-6 mb-6">
                 <h3 className="font-semibold mb-4">Agregar nueva subcategoría</h3>
                 <div className="flex gap-3 flex-wrap">
@@ -955,7 +987,7 @@ export default function AdminPage() {
                   </select>
                   <input type="text" placeholder="Nombre de la subcategoría..." value={subcategoryForm.nombre} onChange={(e) => setSubcategoryForm({ ...subcategoryForm, nombre: e.target.value })}
                     className="flex-1 min-w-[200px] px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
-                  <button onClick={() => openSubcategoryModal()} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition"><Plus size={18} /></button>
+                  <button onClick={handleCreateSubcategory} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition">Crear</button>
                 </div>
               </div>
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -988,13 +1020,13 @@ export default function AdminPage() {
 
           {/* LABORATORIOS */}
           {activeView === "laboratorios" && (
-            <div className="max-w-4xl">
+            <div className="max-w-4xl mx-auto">
               <div className="bg-white rounded-xl p-6 mb-6">
                 <h3 className="font-semibold mb-4">Agregar nuevo laboratorio</h3>
                 <div className="flex gap-3">
                   <input type="text" placeholder="Nombre del laboratorio..." value={labForm.nombre} onChange={(e) => setLabForm({ ...labForm, nombre: e.target.value })}
                     className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
-                  <button onClick={() => openLabModal()} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition"><Plus size={18} /></button>
+                  <button onClick={handleCreateLab} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition">Crear</button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1020,7 +1052,7 @@ export default function AdminPage() {
 
           {/* ETIQUETAS */}
           {activeView === "etiquetas" && (
-            <div className="max-w-4xl">
+            <div className="max-w-4xl mx-auto">
               <div className="bg-white rounded-xl p-6 mb-6">
                 <h3 className="font-semibold mb-4">Agregar nueva etiqueta</h3>
                 <div className="flex flex-wrap gap-4 items-end">
@@ -1039,7 +1071,7 @@ export default function AdminPage() {
                       ))}
                     </div>
                   </div>
-                  <button onClick={() => openEtiquetaModal()} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition"><Plus size={18} /></button>
+                  <button onClick={handleCreateEtiqueta} className="bg-[#2d5a27] hover:bg-[#1b5e20] text-white px-6 py-3 rounded-xl font-medium transition">Crear</button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
