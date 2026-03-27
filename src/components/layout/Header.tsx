@@ -336,7 +336,7 @@ export function Header({ cartCount = 0 }: HeaderProps) {
                         )
                       ) : searchResults.length > 0 ? (
                         searchResults.map((product) => {
-                          const productSlug = `${createSlug(product.titulo)}-a`;
+                          const productSlug = `${createSlug(product.titulo)}`;
                           return (
                           <Link
                             key={product.id}

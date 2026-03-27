@@ -35,7 +35,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
   const { addItem } = useCarrito();
   const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
 
-  const productoSlug = `${createSlug(producto.titulo)}-a`;
+  const productoSlug = `${createSlug(producto.titulo)}`;
 
   useEffect(() => {
     if (producto.etiquetas_ids && producto.etiquetas_ids.length > 0) {
