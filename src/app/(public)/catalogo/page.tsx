@@ -140,12 +140,20 @@ export default function CatalogoPage() {
       const from = displayedProductos.length;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from("productos")
         .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
-        .eq("visible", true)
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        .eq("visible", true);
+
+      if (sortBy === "price_asc") {
+        query = query.order("precio", { ascending: true });
+      } else if (sortBy === "price_desc") {
+        query = query.order("precio", { ascending: false });
+      } else {
+        query = query.order("created_at", { ascending: false });
+      }
+
+      const { data, error, count } = await query.range(from, to);
 
       if (data) {
         const productosConLab = data.map((p: { laboratorio?: { nombre: string } } & Producto) => ({
