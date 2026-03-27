@@ -74,6 +74,42 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
       <Header />
 
       <main className="flex-1 pt-20 bg-gray-50">
+        <style jsx>{`
+          .img-panel {
+            background: #ffffff;
+            position: relative;
+            overflow: hidden;
+          }
+          .img-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.3;
+            pointer-events: none;
+          }
+          .spec-pill {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            min-width: 160px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+          }
+          .spec-pill:hover {
+            box-shadow: 0 4px 16px rgba(45, 90, 39, 0.12);
+            border-color: #c8d9cc;
+            transform: translateY(-2px);
+          }
+        `}</style>
+
         <div className="container mx-auto px-4 py-12">
           <nav className="text-sm text-gray-500 mb-8 flex items-center">
             <Link href="/" className="hover:text-[#2d5a27] transition">Inicio</Link>
@@ -85,24 +121,25 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
 
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
             <div className="flex flex-col lg:flex-row">
-              <div className="lg:w-1/2 relative bg-white flex items-center justify-center min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200">
+              <div className="lg:w-1/2 img-panel flex items-center justify-center relative min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200">
                 {producto.imagen ? (
                   <Image
                     src={producto.imagen}
                     alt={producto.titulo}
                     width={600}
                     height={500}
-                    className="max-w-[120%] w-[120%] h-auto object-contain"
+                    className="relative z-10 max-w-[120%] w-[120%] h-auto object-contain"
+                    style={{ marginLeft: "-10%", transformOrigin: "center center" }}
                     priority
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center relative z-10">
                     <i className="fas fa-image text-6xl text-gray-300"></i>
                   </div>
                 )}
 
                 {producto.especies && producto.especies.length > 0 && (
-                  <div className="absolute top-4 right-4 flex flex-col gap-2">
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
                     {producto.especies.map((esp) => (
                       <div
                         key={esp}
@@ -118,9 +155,11 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
 
               <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col">
                 {producto.laboratorio_nombre && (
-                  <span className="inline-block px-3 py-1 bg-[#f1f8e9] text-[#4caf50] text-sm font-medium rounded-full mb-4 w-fit">
-                    {producto.laboratorio_nombre}
-                  </span>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="inline-block px-3 py-1 bg-[#f1f8e9] text-[#2d5a27] text-sm font-medium rounded-full">
+                      {producto.laboratorio_nombre}
+                    </span>
+                  </div>
                 )}
 
                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
@@ -141,15 +180,9 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                   </div>
                 )}
 
-                {producto.volumen && (
-                  <p className="text-lg text-gray-500 mb-4">{producto.volumen}</p>
-                )}
-
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-3xl font-bold text-gray-900">
-                    {producto.precio > 0 ? formatPrice(producto.precio) : "Consultar"}
-                  </span>
-                  {producto.precio > 0 && <span className="text-lg text-gray-400">+ IVA</span>}
+                <div className="text-3xl font-bold text-gray-900 mb-4">
+                  {producto.precio > 0 ? formatPrice(producto.precio) : "Consultar"}
+                  {producto.precio > 0 && <span className="text-lg text-gray-400 ml-1">+ IVA</span>}
                 </div>
 
                 <div className="flex items-center gap-4 mb-6">
@@ -175,7 +208,7 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                   <button
                     onClick={handleAddToCart}
                     className={cn(
-                      "flex-1 py-4 px-8 rounded-xl font-bold transition flex items-center justify-center shadow-md",
+                      "flex-1 py-4 px-8 rounded-xl font-bold transition flex items-center justify-center shadow-md shadow-green-900/20",
                       addedToCart
                         ? "bg-green-500 text-white"
                         : "bg-[#2d5a27] hover:bg-[#1b5e20] text-white"
@@ -197,7 +230,7 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                     href={getWhatsAppLink()}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-4 px-8 rounded-xl font-bold transition flex items-center justify-center shadow-md bg-green-500 hover:bg-green-600 text-white"
+                    className="flex-1 py-4 px-8 rounded-xl font-bold transition flex items-center justify-center shadow-md shadow-green-900/20 bg-green-500 hover:bg-green-600 text-white"
                   >
                     <i className="fab fa-whatsapp text-xl mr-2"></i>
                     Consultar
@@ -217,7 +250,7 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
 
                 {producto.descripcion && (
                   <div className="mb-8">
-                    <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                       <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center">
                         <i className="fas fa-align-left mr-2 text-[#2d5a27]"></i>
                         Descripción
@@ -230,36 +263,32 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                 )}
 
                 <div className="mb-4">
-                  <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
+                  <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                     <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center">
                       <i className="fas fa-list-alt mr-2 text-[#2d5a27]"></i>
                       Especificaciones Técnicas
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {producto.volumen && (
-                        <div className="bg-white rounded-xl p-4 border border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#f1f8e9] rounded-lg flex items-center justify-center flex-shrink-0">
-                              <i className="fas fa-ruler text-[#2d5a27]"></i>
-                            </div>
-                            <div>
-                              <div className="text-xs text-gray-400 uppercase tracking-wide">Volumen / Peso</div>
-                              <div className="font-semibold text-gray-800">{producto.volumen}</div>
-                            </div>
+                        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100 spec-pill">
+                          <div className="w-10 h-10 bg-[#2d5a27] bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i className="fas fa-ruler text-[#2d5a27]"></i>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-400 uppercase tracking-wide">Volumen / Peso / Cantidad</div>
+                            <div className="font-semibold text-gray-800">{producto.volumen}</div>
                           </div>
                         </div>
                       )}
                       {producto.especies && producto.especies.length > 0 && (
-                        <div className="bg-white rounded-xl p-4 border border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#f1f8e9] rounded-lg flex items-center justify-center flex-shrink-0">
-                              <i className="fas fa-paw text-[#2d5a27]"></i>
-                            </div>
-                            <div>
-                              <div className="text-xs text-gray-400 uppercase tracking-wide">Especies</div>
-                              <div className="font-semibold text-gray-800 capitalize">
-                                {producto.especies.map((e) => especieLabels[e] || e).join(", ")}
-                              </div>
+                        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border border-gray-100 spec-pill">
+                          <div className="w-10 h-10 bg-[#2d5a27] bg-opacity-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i className="fas fa-paw text-[#2d5a27]"></i>
+                          </div>
+                          <div>
+                            <div className="text-xs text-gray-400 uppercase tracking-wide">Especies</div>
+                            <div className="font-semibold text-gray-800 capitalize">
+                              {producto.especies.map((e) => especieLabels[e] || e).join(", ")}
                             </div>
                           </div>
                         </div>
@@ -323,7 +352,7 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
 
           {productosRelacionados.length > 0 && (
             <section className="mt-24">
-              <h2 className="text-2xl font-bold text-gray-800 mb-8 pb-4 border-b">
+              <h2 className="text-2xl font-bold text-gray-800 mb-8 border-b pb-4">
                 Productos Relacionados
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
