@@ -1266,11 +1266,99 @@ export default function AdminPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Laboratorio</label>
-                    <select value={productForm.laboratorio_id} onChange={(e) => setProductForm({...productForm, laboratorio_id: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]">
-                      <option value="">Seleccionar...</option>
-                      {laboratorios.map((lab) => (<option key={lab.id} value={lab.id}>{lab.nombre}</option>))}
-                    </select>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={productForm.laboratorio_id ? laboratorios.find(l => l.id === productForm.laboratorio_id)?.nombre || "" : ""} 
+                        onChange={(e) => {
+                          const found = laboratorios.find(l => l.nombre.toLowerCase().includes(e.target.value.toLowerCase()));
+                          if (found) {
+                            setProductForm({...productForm, laboratorio_id: found.id});
+                          } else {
+                            setProductForm({...productForm, laboratorio_id: ""});
+                          }
+                        }}
+                        placeholder="Buscar o crear laboratorio..."
+                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
+                        list="lab-list"
+                      />
+                      <datalist id="lab-list">
+                        {laboratorios.map((lab) => (<option key={lab.id} value={lab.nombre} />))}
+                      </datalist>
+                      <button 
+                        type="button"
+                        onClick={async () => {
+                          const nombre = prompt("Nombre del nuevo laboratorio:");
+                          if (nombre?.trim()) {
+                            const { data } = await supabase.from("laboratorios").insert({ nombre: nombre.trim() }).select().single();
+                            if (data) {
+                              setLaboratorios([...laboratorios, data]);
+                              setProductForm({...productForm, laboratorio_id: data.id});
+                            }
+                          }
+                        }}
+                        className="px-3 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition"
+                        title="Crear nuevo laboratorio"
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Subcategorías</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {productForm.subcategorias_ids.map((subId) => {
+                        const sub = subcategorias.find(s => s.id === subId);
+                        const cat = categorias.find(c => c.id === sub?.categoria_id);
+                        return sub ? (
+                          <span key={subId} className="inline-flex items-center gap-1 px-2 py-1 bg-[#f1f8e9] text-[#2d5a27] text-sm rounded-full">
+                            {sub.nombre}
+                            {cat && <span className="text-xs text-gray-500">({cat.nombre})</span>}
+                            <button onClick={() => setProductForm({...productForm, subcategorias_ids: productForm.subcategorias_ids.filter(id => id !== subId)})} className="ml-1 hover:text-red-500">
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
+                    <div className="flex gap-2">
+                      <select 
+                        onChange={(e) => {
+                          if (e.target.value && !productForm.subcategorias_ids.includes(e.target.value)) {
+                            setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, e.target.value]});
+                          }
+                          e.target.value = "";
+                        }}
+                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
+                      >
+                        <option value="">Agregar subcategoría...</option>
+                        {subcategorias.filter(s => !productForm.subcategorias_ids.includes(s.id)).map((sub) => {
+                          const cat = categorias.find(c => c.id === sub.categoria_id);
+                          return <option key={sub.id} value={sub.id}>{sub.nombre} {cat ? `(${cat.nombre})` : ""}</option>;
+                        })}
+                      </select>
+                      <button 
+                        type="button"
+                        onClick={async () => {
+                          const nombre = prompt("Nombre de la nueva subcategoría:");
+                          if (nombre?.trim()) {
+                            const catId = prompt("ID de categoría (deja vacío si no tiene):")?.trim();
+                            const { data } = await supabase.from("subcategorias").insert({ 
+                              nombre: nombre.trim(), 
+                              categoria_id: catId || null 
+                            }).select().single();
+                            if (data) {
+                              setSubcategorias([...subcategorias, data]);
+                              setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, data.id]});
+                            }
+                          }
+                        }}
+                        className="px-3 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition"
+                        title="Crear nueva subcategoría"
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
