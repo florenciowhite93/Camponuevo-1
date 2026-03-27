@@ -8,7 +8,7 @@ import {
   Edit2, Trash2, Copy, ChevronRight, X, Menu, 
   Tags, FlaskConical, FolderTree, Layers, Eye, ArrowLeft, Save, Check
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, createSlug } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { LandingEditor } from "@/components/admin/LandingEditor";
 
@@ -963,8 +963,9 @@ export default function AdminPage() {
                               <Eye size={18} />
                             </button>
                           </td>
-                          <td className="p-4">
+                           <td className="p-4">
                             <div className="flex items-center justify-center gap-2">
+                              <a href={`/catalogo/${createSlug(product.titulo)}-a`} target="_blank" className="p-2 hover:bg-green-50 rounded-lg" title="Ver"><Eye size={18} className="text-green-600" /></a>
                               <button onClick={() => openProductModal(product)} className="p-2 hover:bg-gray-100 rounded-lg" title="Editar"><Edit2 size={18} className="text-gray-600" /></button>
                               <button onClick={() => duplicateProduct(product)} className="p-2 hover:bg-blue-50 rounded-lg" title="Duplicar"><Copy size={18} className="text-blue-500" /></button>
                               <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 size={18} className="text-red-500" /></button>

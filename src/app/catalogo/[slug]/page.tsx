@@ -46,7 +46,7 @@ async function getProductoBySlug(slug: string) {
 
   for (const producto of productos) {
     const productoSlug = createSlug(producto.titulo);
-    const fullSlug = `${productoSlug}-${producto.id.slice(0, 8)}`;
+    const fullSlug = `${productoSlug}-a`;
     if (fullSlug === slug) {
       return { producto, isLegacyId: false };
     }
@@ -144,7 +144,7 @@ export default async function ProductPage({
   const { producto, isLegacyId } = result;
 
   if (isLegacyId) {
-    const newSlug = `${createSlug(producto.titulo)}-${producto.id.slice(0, 8)}`;
+    const newSlug = `${createSlug(producto.titulo)}-a`;
     redirect(`/catalogo/${newSlug}`);
   }
 
