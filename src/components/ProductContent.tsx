@@ -156,18 +156,18 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                 )}
 
                 {producto.especies && producto.especies.length > 0 && (
-                  <div className="absolute top-4 left-4 flex flex-wrap gap-1 z-20">
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
                     {producto.especies.slice(0, 3).map((esp) => (
                       <div
                         key={esp}
-                        className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center"
+                        className="w-10 h-10 bg-white rounded-lg shadow-md flex items-center justify-center"
                         title={especieLabels[esp]}
                       >
                         <Image 
                           src={especieIcons[esp]} 
                           alt={especieLabels[esp]} 
-                          width={18} 
-                          height={18}
+                          width={24} 
+                          height={24}
                           className="object-contain"
                         />
                       </div>
