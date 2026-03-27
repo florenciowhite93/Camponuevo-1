@@ -33,7 +33,7 @@ export function AnimatedCounter({
       
       const startTime = performance.now();
       const startValue = 0;
-      const frameSkip = end > 100 ? Math.ceil(end / 100) : 1;
+      const frameSkip = end > 100 ? Math.ceil(end / 200) : 1;
       let lastFrame = 0;
       
       const animate = (currentTime: number) => {
@@ -41,7 +41,8 @@ export function AnimatedCounter({
         const progress = Math.min(elapsed / duration, 1);
         
         const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-        const currentValue = Math.floor((startValue + (end - startValue) * easeOutQuart) / frameSkip) * frameSkip;
+        const easeOut = progress === 1 ? 1 : easeOutQuart;
+        const currentValue = Math.floor((startValue + (end - startValue) * easeOut) / frameSkip) * frameSkip;
         
         if (currentValue !== lastFrame) {
           lastFrame = currentValue;
@@ -50,8 +51,6 @@ export function AnimatedCounter({
         
         if (progress < 1) {
           requestAnimationFrame(animate);
-        } else {
-          setCount(end);
         }
       };
       
