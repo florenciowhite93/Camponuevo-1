@@ -23,9 +23,12 @@ function ReglaIcon() {
 
 function EspecieIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 137 105" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M80.6769 98.17L82.9469 78.22C83.0769 77.07 84.8469 74.98 85.8469 74.53L87.8969 73.61C88.7869 73.21 81.2869 64.6901 87.6469 56.4901C91.3469 51.7201 97.4069 49.92 103.557 52.32L106.407 47.8301C106.857 47.1201 108.567 46.33 109.347 46.17C110.127 46.01 111.017 48.67 110.647 49.41L103.117 64.37C99.6669 71.22 94.4069 75.67 87.5769 79.28L84.7569 102.24C84.6569 103.09 82.7569 104.66 82.0769 104.65L74.7169 104.61C73.7969 104.61 72.3369 102.52 72.3369 101.29L72.3769 71.04L61.7969 70.83C60.0269 70.79 57.7869 74.28 57.9469 75.9L58.2069 78.55C58.4769 81.28 51.0469 75.25 48.1869 83.08L47.3469 85.39C47.1569 85.91 45.1669 84.84 44.7869 84.44C42.1269 81.63 38.1369 83.31 37.2169 84.44L35.4069 86.68C34.0469 88.36 32.1369 83.03 31.5769 82.89L25.6369 81.39L23.0669 102.08C22.9269 103.2 20.9169 104.7 20.0969 104.69L13.0769 104.6C12.4669 104.6 10.6969 102.91 10.6969 101.93L10.6769 36.59C10.6769 32.34 12.0169 29.1801 13.6469 25.5301C9.8469 26.4201 6.3069 30.23 6.3469 34.62L6.5769 59.64C6.5869 61 8.2669 63.61 7.9869 64.77C7.6569 66.12 5.5769 68.86 3.9969 68.79C2.4169 68.72 0.4069 66.09 0.0469003 64.8C-0.3131 63.51 1.5169 60.7601 1.5369 59.2201L1.7569 35.5401C1.8469 26.0401 8.9569 20.15 18.0069 20.16L82.9969 20.23C84.5569 20.23 87.7569 19.13 88.4669 18.58L85.5969 12.65C85.0769 11.57 86.1969 8.78005 87.2469 8.50005C97.3169 5.85005 100.057 13.08 102.147 7.67005C104.017 2.83005 107.717 -1.86995 109.197 0.790049C109.497 1.33005 109.977 2.82005 109.647 3.36005L107.077 7.46005C106.867 7.80005 108.367 9.16005 108.577 8.83005L109.587 7.28005C109.807 6.94005 115.007 -3.07995 116.977 0.940049C118.197 3.42005 117.267 2.89005 114.247 9.34005C113.957 9.97005 116.407 11.31 117.057 11.86L132.827 25.1901C136.877 28.6201 137.647 33 134.897 37.67C133.617 39.84 130.887 42.1501 128.077 42.1301L113.027 41.98C112.207 41.98 110.757 40.59 110.667 39.84C110.577 39.09 112.297 37.43 113.287 37.42L128.237 37.37C130.517 37.37 133.137 31.78 131.327 30.22L114.497 15.63C111.337 12.89 103.517 12.93 103.867 13.98L104.007 14.36" stroke="#2d5a27" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M111.797 24.8399C113.437 24.8399 114.767 23.5102 114.767 21.8699C114.767 20.2296 113.437 18.8999 111.797 18.8999C110.157 18.8999 108.827 20.2296 108.827 21.8699C108.827 23.5102 110.157 24.8399 111.797 24.8399Z" stroke="#2d5a27"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 10.5C13.1046 10.5 14 9.60457 14 8.5C14 7.39543 13.1046 6.5 12 6.5C10.8954 6.5 10 7.39543 10 8.5C10 9.60457 10.8954 10.5 12 10.5Z" stroke="#2d5a27" strokeWidth="2"/>
+      <path d="M19 10.5C20.1046 10.5 21 9.60457 21 8.5C21 7.39543 20.1046 6.5 19 6.5C17.8954 6.5 17 7.39543 17 8.5C17 9.60457 17.8954 10.5 19 10.5Z" stroke="#2d5a27" strokeWidth="2"/>
+      <path d="M5 10.5C6.10457 10.5 7 9.60457 7 8.5C7 7.39543 6.10457 6.5 5 6.5C3.89543 6.5 3 7.39543 3 8.5C3 9.60457 3.89543 10.5 5 10.5Z" stroke="#2d5a27" strokeWidth="2"/>
+      <path d="M12 17C13.657 17 15 15.9853 15 14.5C15 13.0147 13.657 12 12 12C10.343 12 9 13.0147 9 14.5C9 15.9853 10.343 17 12 17Z" stroke="#2d5a27" strokeWidth="2"/>
+      <path d="M12 21C13.657 21 15 19.9853 15 18.5C15 17.0147 13.657 16 12 16C10.343 16 9 17.0147 9 18.5C9 19.9853 10.343 21 12 21Z" stroke="#2d5a27" strokeWidth="2"/>
     </svg>
   );
 }
@@ -317,7 +320,7 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
             </div>
           </div>
 
-          {(producto.dosis || producto.drogas) && (
+          {(producto.indicaciones || producto.dosis || producto.drogas) && (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
               <button
                 onClick={() => setIsDetailsOpen(!isDetailsOpen)}
@@ -334,23 +337,23 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
               </button>
 
               {isDetailsOpen && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-                  {producto.dosis && (
-                    <div className="md:border-r md:border-gray-200 md:pr-6">
+                <div className="p-6 space-y-6">
+                  {producto.indicaciones && (
+                    <div>
                       <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                        <i className="fas fa-syringe mr-2 text-[#2d5a27]"></i>
-                        Dosis y Administración
+                        <i className="fas fa-clipboard-list mr-2 text-[#2d5a27]"></i>
+                        Indicaciones
                       </h4>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {producto.dosis}
+                        {producto.indicaciones}
                       </p>
                     </div>
                   )}
                   {producto.drogas && (
-                    <div className="md:pl-2">
+                    <div>
                       <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
                         <i className="fas fa-flask mr-2 text-[#2d5a27]"></i>
-                        Principios Activos
+                        Composición
                       </h4>
                       <ul className="space-y-2 text-gray-700">
                         {producto.drogas.split(";").map((drug, i) => (
@@ -360,6 +363,17 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  )}
+                  {producto.dosis && (
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                        <i className="fas fa-syringe mr-2 text-[#2d5a27]"></i>
+                        Dosis y Administración
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                        {producto.dosis}
+                      </p>
                     </div>
                   )}
                 </div>

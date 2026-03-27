@@ -105,6 +105,7 @@ export default function AdminPage() {
     descripcion: "",
     drogas: "",
     dosis: "",
+    indicaciones: "",
     especies: [] as string[],
     etiquetas_ids: [] as string[],
     subcategorias_ids: [] as string[],
@@ -203,6 +204,7 @@ export default function AdminPage() {
         descripcion: product.descripcion || "",
         drogas: product.drogas || "",
         dosis: product.dosis || "",
+        indicaciones: product.indicaciones || "",
         especies: product.especies || [],
         etiquetas_ids: product.etiquetas_ids || [],
         subcategorias_ids: product.subcategorias_ids || [],
@@ -220,6 +222,7 @@ export default function AdminPage() {
         descripcion: "",
         drogas: "",
         dosis: "",
+        indicaciones: "",
         especies: [],
         etiquetas_ids: [],
         subcategorias_ids: [],
@@ -241,6 +244,7 @@ export default function AdminPage() {
         descripcion: productForm.descripcion,
         drogas: productForm.drogas,
         dosis: productForm.dosis,
+        indicaciones: productForm.indicaciones,
         especies: productForm.especies,
         etiquetas_ids: productForm.etiquetas_ids,
         subcategorias_ids: productForm.subcategorias_ids,
@@ -286,6 +290,7 @@ export default function AdminPage() {
       descripcion: product.descripcion,
       drogas: product.drogas,
       dosis: product.dosis,
+      indicaciones: product.indicaciones,
       especies: product.especies,
       etiquetas_ids: product.etiquetas_ids,
       subcategorias_ids: product.subcategorias_ids,
@@ -1278,7 +1283,7 @@ export default function AdminPage() {
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Drogas / Principios Activos</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Composición</label>
                     <input type="text" value={productForm.drogas} onChange={(e) => setProductForm({...productForm, drogas: e.target.value})}
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej: Ibuprofeno 500mg" />
                   </div>
@@ -1286,6 +1291,11 @@ export default function AdminPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Dosis Recomendada</label>
                     <input type="text" value={productForm.dosis} onChange={(e) => setProductForm({...productForm, dosis: e.target.value})}
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej: 1 vez al día" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Indicaciones</label>
+                    <textarea value={productForm.indicaciones} onChange={(e) => setProductForm({...productForm, indicaciones: e.target.value})}
+                      rows={3} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Indicaciones del producto..." />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Especies de Destino</label>

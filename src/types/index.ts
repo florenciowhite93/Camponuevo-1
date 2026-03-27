@@ -11,6 +11,7 @@ export interface Producto {
   volumen: string;
   drogas: string;
   dosis: string;
+  indicaciones: string;
   especies: Especie[];
   etiquetas_ids: string[];
   subcategorias_ids: string[];

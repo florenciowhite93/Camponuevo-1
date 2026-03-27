@@ -70,6 +70,7 @@ export function Header({ cartCount = 0 }: HeaderProps) {
             volumen: "",
             drogas: p.drogas || "",
             dosis: "",
+            indicaciones: "",
             especies: [],
             etiquetas_ids: [],
             subcategorias_ids: [],
