@@ -133,19 +133,29 @@ export default function CatalogoPage() {
   };
 
   const loadMoreProducts = async () => {
-    if (loadingMore || !hasMore || sortBy !== "newest") return;
+    if (loadingMore || !hasMore) return;
     
     try {
       setLoadingMore(true);
       const from = displayedProductos.length;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from("productos")
         .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
-        .eq("visible", true)
-        .order("created_at", { ascending: false })
-        .range(from, to);
+        .eq("visible", true);
+
+      if (sortBy === "name_asc") {
+        query = query.order("titulo", { ascending: true });
+      } else if (sortBy === "price_asc") {
+        query = query.order("precio", { ascending: true });
+      } else if (sortBy === "price_desc") {
+        query = query.order("precio", { ascending: false });
+      } else {
+        query = query.order("created_at", { ascending: false });
+      }
+
+      const { data, error, count } = await query.range(from, to);
 
       if (data) {
         const productosConLab = data.map((p: { laboratorio?: { nombre: string } } & Producto) => ({
@@ -260,7 +270,7 @@ const loadFilteredProducts = async (reset = false) => {
   };
 
   const loadMoreFilteredProducts = async () => {
-    if (loadingMore || !hasMore || sortBy !== "newest") return;
+    if (loadingMore || !hasMore) return;
 
     try {
       setLoadingMore(true);
@@ -289,9 +299,17 @@ const loadFilteredProducts = async (reset = false) => {
         query = query.contains("subcategorias_ids", [selectedSubcategorias]);
       }
 
-      const { data, count, error } = await query
-        .order("created_at", { ascending: false })
-        .range(from, to);
+      if (sortBy === "name_asc") {
+        query = query.order("titulo", { ascending: true });
+      } else if (sortBy === "price_asc") {
+        query = query.order("precio", { ascending: true });
+      } else if (sortBy === "price_desc") {
+        query = query.order("precio", { ascending: false });
+      } else {
+        query = query.order("created_at", { ascending: false });
+      }
+
+      const { data, count, error } = await query.range(from, to);
 
       if (error) {
         console.error("Error loading more filtered products:", error);

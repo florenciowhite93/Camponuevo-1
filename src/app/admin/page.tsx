@@ -269,6 +269,34 @@ export default function AdminPage() {
     }
   };
 
+  const toggleProductVisibility = async (id: string, visible: boolean) => {
+    await supabase
+      .from("productos")
+      .update({ visible, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    await fetchAllData();
+  };
+
+  const duplicateProduct = async (product: any) => {
+    const newProduct = {
+      titulo: `${product.titulo} (copia)`,
+      precio: product.precio,
+      laboratorio_id: product.laboratorio_id,
+      volumen: product.volumen,
+      descripcion: product.descripcion,
+      drogas: product.drogas,
+      dosis: product.dosis,
+      especies: product.especies,
+      etiquetas_ids: product.etiquetas_ids,
+      subcategorias_ids: product.subcategorias_ids,
+      imagen: product.imagen,
+      link_externo: product.link_externo,
+      visible: false,
+    };
+    await supabase.from("productos").insert(newProduct);
+    await fetchAllData();
+  };
+
   // --- CATEGORÍAS ---
   const openCategoryModal = (category?: any) => {
     if (category) {
@@ -904,6 +932,7 @@ export default function AdminPage() {
                         <th className="text-left p-4 font-semibold text-gray-600">Laboratorio</th>
                         <th className="text-left p-4 font-semibold text-gray-600">Especies</th>
                         <th className="text-left p-4 font-semibold text-gray-600">Precio</th>
+                        <th className="text-center p-4 font-semibold text-gray-600">Visible</th>
                         <th className="text-center p-4 font-semibold text-gray-600">Acciones</th>
                       </tr>
                     </thead>
@@ -920,9 +949,24 @@ export default function AdminPage() {
                             </div>
                           </td>
                           <td className="p-4 font-semibold text-[#2d5a27]">{formatPrice(product.precio)}</td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => toggleProductVisibility(product.id, !product.visible)}
+                              className={cn(
+                                "p-2 rounded-lg transition",
+                                product.visible 
+                                  ? "bg-green-100 text-green-600 hover:bg-green-200" 
+                                  : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                              )}
+                              title={product.visible ? "Ocultar de la tienda" : "Mostrar en la tienda"}
+                            >
+                              <Eye size={18} />
+                            </button>
+                          </td>
                           <td className="p-4">
                             <div className="flex items-center justify-center gap-2">
                               <button onClick={() => openProductModal(product)} className="p-2 hover:bg-gray-100 rounded-lg" title="Editar"><Edit2 size={18} className="text-gray-600" /></button>
+                              <button onClick={() => duplicateProduct(product)} className="p-2 hover:bg-blue-50 rounded-lg" title="Duplicar"><Copy size={18} className="text-blue-500" /></button>
                               <button onClick={() => deleteProduct(product.id)} className="p-2 hover:bg-red-50 rounded-lg" title="Eliminar"><Trash2 size={18} className="text-red-500" /></button>
                             </div>
                           </td>
