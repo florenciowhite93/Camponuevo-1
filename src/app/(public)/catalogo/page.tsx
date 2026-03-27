@@ -310,16 +310,71 @@ const loadFilteredProducts = async (reset = false) => {
     }
   };
 
+  const loadProductsSorted = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from("productos")
+        .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
+        .eq("visible", true);
+
+      if (sortBy === "name_asc") {
+        query = query.order("titulo", { ascending: true });
+        const { data, count } = await query;
+        const productosConLab = (data || []).map((p: { laboratorio?: { nombre: string } } & Producto) => ({
+          ...p,
+          laboratorio_nombre: p.laboratorio?.nombre,
+        }));
+        setAllProductos(productosConLab);
+        setDisplayedProductos(productosConLab.slice(0, PAGE_SIZE));
+        setTotalCount(count || 0);
+        setHasMore(productosConLab.length > PAGE_SIZE);
+      } else if (sortBy === "price_asc") {
+        query = query.order("precio", { ascending: true });
+        const { data, count } = await query.range(0, PAGE_SIZE - 1);
+        const productosConLab = (data || []).map((p: { laboratorio?: { nombre: string } } & Producto) => ({
+          ...p,
+          laboratorio_nombre: p.laboratorio?.nombre,
+        }));
+        setAllProductos(productosConLab);
+        setDisplayedProductos(productosConLab);
+        setTotalCount(count || 0);
+        setHasMore((data?.length || 0) < (count || 0));
+      } else if (sortBy === "price_desc") {
+        query = query.order("precio", { ascending: false });
+        const { data, count } = await query.range(0, PAGE_SIZE - 1);
+        const productosConLab = (data || []).map((p: { laboratorio?: { nombre: string } } & Producto) => ({
+          ...p,
+          laboratorio_nombre: p.laboratorio?.nombre,
+        }));
+        setAllProductos(productosConLab);
+        setDisplayedProductos(productosConLab);
+        setTotalCount(count || 0);
+        setHasMore((data?.length || 0) < (count || 0));
+      } else {
+        query = query.order("created_at", { ascending: false });
+        const { data, count } = await query.range(0, PAGE_SIZE - 1);
+        const productosConLab = (data || []).map((p: { laboratorio?: { nombre: string } } & Producto) => ({
+          ...p,
+          laboratorio_nombre: p.laboratorio?.nombre,
+        }));
+        setAllProductos(productosConLab);
+        setDisplayedProductos(productosConLab);
+        setTotalCount(count || 0);
+        setHasMore((data?.length || 0) < (count || 0));
+      }
+    } catch (error) {
+      console.error("Error loading products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (hasActiveFilters()) {
       loadFilteredProducts(true);
     } else {
-      if (allProductos.length === 0) {
-        fetchInitialData();
-      } else {
-        setDisplayedProductos(allProductos);
-        setHasMore(allProductos.length < totalCount);
-      }
+      loadProductsSorted();
     }
   }, [searchTerm, selectedLabs, selectedEspecies, selectedCategorias, selectedSubcategorias, sortBy]);
 
