@@ -165,7 +165,7 @@ export default function CatalogoPage() {
     }
   };
 
-  const loadFilteredProducts = async (reset = false) => {
+const loadFilteredProducts = async (reset = false) => {
     try {
       if (reset) {
         setLoading(true);
@@ -192,31 +192,54 @@ export default function CatalogoPage() {
         query = query.contains("subcategorias_ids", [selectedSubcategorias]);
       }
 
-      const from = 0;
-      const to = PAGE_SIZE - 1;
-      const { data, count, error } = await query.range(from, to);
+      let productosConLab: Producto[];
+      let count = 0;
 
-      if (error) {
-        console.error("Error fetching filtered products:", error);
-        return;
-      }
-
-      if (data) {
-        const productosConLab = data.map((p: { laboratorio?: { nombre: string } } & Producto) => ({
+      if (sortBy === "name_asc") {
+        query = query.order("titulo", { ascending: true });
+        const { data, error } = await query;
+        if (error) {
+          console.error("Error fetching filtered products:", error);
+          return;
+        }
+        productosConLab = (data || []).map((p: { laboratorio?: { nombre: string } } & Producto) => ({
           ...p,
           laboratorio_nombre: p.laboratorio?.nombre,
         }));
-        productosConLab.sort((a, b) => {
-          if (sortBy === "name_asc") return a.titulo.localeCompare(b.titulo);
-          if (sortBy === "price_asc") return a.precio - b.precio;
-          if (sortBy === "price_desc") return b.precio - a.precio;
-          return (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-        });
+        count = productosConLab.length;
+        setAllProductos(productosConLab);
+        setDisplayedProductos(productosConLab.slice(0, PAGE_SIZE));
+        setTotalCount(count);
+        setFilteredCount(count);
+        setHasMore(productosConLab.length > PAGE_SIZE);
+      } else {
+        if (sortBy === "price_asc") {
+          query = query.order("precio", { ascending: true });
+        } else if (sortBy === "price_desc") {
+          query = query.order("precio", { ascending: false });
+        } else {
+          query = query.order("created_at", { ascending: false });
+        }
+
+        const from = 0;
+        const to = PAGE_SIZE - 1;
+        const { data, error } = await query.range(from, to);
+
+        if (error) {
+          console.error("Error fetching filtered products:", error);
+          return;
+        }
+
+        productosConLab = (data || []).map((p: { laboratorio?: { nombre: string } } & Producto) => ({
+          ...p,
+          laboratorio_nombre: p.laboratorio?.nombre,
+        }));
+        count = productosConLab.length;
         setAllProductos(productosConLab);
         setDisplayedProductos(productosConLab);
-        setTotalCount(count || 0);
-        setFilteredCount(count || 0);
-        setHasMore((data.length || 0) < (count || 0));
+        setTotalCount(count);
+        setFilteredCount(count);
+        setHasMore((data?.length || 0) < count);
       }
     } catch (error) {
       console.error("Error fetching filtered products:", error);
@@ -226,7 +249,7 @@ export default function CatalogoPage() {
   };
 
   const loadMoreFilteredProducts = async () => {
-    if (loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore || sortBy === "name_asc") return;
 
     try {
       setLoadingMore(true);
@@ -255,6 +278,14 @@ export default function CatalogoPage() {
         query = query.contains("subcategorias_ids", [selectedSubcategorias]);
       }
 
+      if (sortBy === "price_asc") {
+        query = query.order("precio", { ascending: true });
+      } else if (sortBy === "price_desc") {
+        query = query.order("precio", { ascending: false });
+      } else {
+        query = query.order("created_at", { ascending: false });
+      }
+
       const { data, count, error } = await query.range(from, to);
 
       if (error) {
@@ -267,12 +298,6 @@ export default function CatalogoPage() {
           ...p,
           laboratorio_nombre: p.laboratorio?.nombre,
         }));
-        productosConLab.sort((a, b) => {
-          if (sortBy === "name_asc") return a.titulo.localeCompare(b.titulo);
-          if (sortBy === "price_asc") return a.precio - b.precio;
-          if (sortBy === "price_desc") return b.precio - a.precio;
-          return (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-        });
         setAllProductos(prev => [...prev, ...productosConLab]);
         setDisplayedProductos(prev => [...prev, ...productosConLab]);
         setHasMore(data.length === PAGE_SIZE && displayedProductos.length + data.length < (count || 0));
@@ -298,37 +323,7 @@ export default function CatalogoPage() {
     }
   }, [searchTerm, selectedLabs, selectedEspecies, selectedCategorias, selectedSubcategorias, sortBy]);
 
-  const filteredProducts = displayedProductos
-    .filter((p) => {
-      const matchesSearch = searchTerm === "" || 
-        p.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.descripcion && p.descripcion.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (p.drogas && p.drogas.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesLab = !selectedLabs || p.laboratorio_id === selectedLabs;
-      const matchesEspecie = selectedEspecies.length === 0 || p.especies?.some((e) => selectedEspecies.includes(e));
-      
-      let matchesCategoria = true;
-      if (selectedCategorias) {
-        matchesCategoria = p.subcategorias_ids?.some((s) => {
-          const sub = subcategorias.find(sub => sub.id === s);
-          return sub?.categoria_id === selectedCategorias;
-        });
-      }
-
-      let matchesSubcategoria = true;
-      if (selectedSubcategorias) {
-        matchesSubcategoria = p.subcategorias_ids?.includes(selectedSubcategorias);
-      }
-
-      return matchesSearch && matchesLab && matchesEspecie && matchesCategoria && matchesSubcategoria;
-    })
-    .sort((a, b) => {
-      if (sortBy === "name_asc") return a.titulo.localeCompare(b.titulo);
-      if (sortBy === "price_asc") return a.precio - b.precio;
-      if (sortBy === "price_desc") return b.precio - a.precio;
-      return 0;
-    });
+  const filteredProducts = displayedProductos;
 
   const toggleEspecie = (especie: string) => {
     setSelectedEspecies(prev =>
@@ -442,12 +437,91 @@ export default function CatalogoPage() {
               <hr className="border-gray-100 my-6" />
 
               <motion.div 
+                className="mb-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Laboratorio</label>
+                <motion.select 
+                  id="labFilter"
+                  value={selectedLabs}
+                  onChange={(e) => setSelectedLabs(e.target.value)}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition appearance-none cursor-pointer"
+                  whileFocus={{ borderColor: "#2d5a27", boxShadow: "0 0 0 2px rgba(45, 90, 39, 0.1)" }}
+                >
+                  <option value="">Todos los laboratorios</option>
+                  {laboratorios.map((lab) => (
+                    <option key={lab.id} value={lab.id}>{lab.nombre}</option>
+                  ))}
+                </motion.select>
+                <div className="relative pointer-events-none">
+                  <i className="fas fa-chevron-down absolute bottom-3.5 right-4 text-gray-400"></i>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="mb-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Categoría</label>
+                <motion.select 
+                  id="catFilter"
+                  value={selectedCategorias}
+                  onChange={(e) => {
+                    setSelectedCategorias(e.target.value);
+                    setSelectedSubcategorias("");
+                  }}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition appearance-none cursor-pointer"
+                  whileFocus={{ borderColor: "#2d5a27", boxShadow: "0 0 0 2px rgba(45, 90, 39, 0.1)" }}
+                >
+                  <option value="">Todas las categorías</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                  ))}
+                </motion.select>
+                <div className="relative pointer-events-none">
+                  <i className="fas fa-chevron-down absolute bottom-3.5 right-4 text-gray-400"></i>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                className="mb-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Sub-Categoría</label>
+                <motion.select 
+                  id="subCatFilter"
+                  value={selectedSubcategorias}
+                  onChange={(e) => setSelectedSubcategorias(e.target.value)}
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition appearance-none cursor-pointer"
+                  whileFocus={{ borderColor: "#2d5a27", boxShadow: "0 0 0 2px rgba(45, 90, 39, 0.1)" }}
+                >
+                  <option value="">Todas las sub-categorías</option>
+                  {subcategorias
+                    .filter(s => !selectedCategorias || s.categoria_id === selectedCategorias)
+                    .map((sub) => (
+                      <option key={sub.id} value={sub.id}>{sub.nombre}</option>
+                    ))}
+                </motion.select>
+                <div className="relative pointer-events-none">
+                  <i className="fas fa-chevron-down absolute bottom-3.5 right-4 text-gray-400"></i>
+                </div>
+              </motion.div>
+
+              <hr className="border-gray-100 my-6" />
+
+              <motion.div 
                 className="mb-6" 
                 id="breedFilterContainer" 
                 ref={breedDropdownRef}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.6 }}
               >
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Especie Animal</label>
                 <div className="relative">
@@ -490,85 +564,6 @@ export default function CatalogoPage() {
                   </motion.div>
                 </div>
               </motion.div>
-
-              <hr className="border-gray-100 my-6" />
-
-              <motion.div 
-                className="mb-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Laboratorio</label>
-                <motion.select 
-                  id="labFilter"
-                  value={selectedLabs}
-                  onChange={(e) => setSelectedLabs(e.target.value)}
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition appearance-none cursor-pointer"
-                  whileFocus={{ borderColor: "#2d5a27", boxShadow: "0 0 0 2px rgba(45, 90, 39, 0.1)" }}
-                >
-                  <option value="">Todos los laboratorios</option>
-                  {laboratorios.map((lab) => (
-                    <option key={lab.id} value={lab.id}>{lab.nombre}</option>
-                  ))}
-                </motion.select>
-                <div className="relative pointer-events-none">
-                  <i className="fas fa-chevron-down absolute bottom-3.5 right-4 text-gray-400"></i>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                className="mb-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Categoría</label>
-                <motion.select 
-                  id="catFilter"
-                  value={selectedCategorias}
-                  onChange={(e) => {
-                    setSelectedCategorias(e.target.value);
-                    setSelectedSubcategorias("");
-                  }}
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition appearance-none cursor-pointer"
-                  whileFocus={{ borderColor: "#2d5a27", boxShadow: "0 0 0 2px rgba(45, 90, 39, 0.1)" }}
-                >
-                  <option value="">Todas las categorías</option>
-                  {categorias.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                  ))}
-                </motion.select>
-                <div className="relative pointer-events-none">
-                  <i className="fas fa-chevron-down absolute bottom-3.5 right-4 text-gray-400"></i>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                className="mt-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-              >
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Sub-Categoría</label>
-                <motion.select 
-                  id="subCatFilter"
-                  value={selectedSubcategorias}
-                  onChange={(e) => setSelectedSubcategorias(e.target.value)}
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition appearance-none cursor-pointer"
-                  whileFocus={{ borderColor: "#2d5a27", boxShadow: "0 0 0 2px rgba(45, 90, 39, 0.1)" }}
-                >
-                  <option value="">Todas las sub-categorías</option>
-                  {subcategorias
-                    .filter(s => !selectedCategorias || s.categoria_id === selectedCategorias)
-                    .map((sub) => (
-                      <option key={sub.id} value={sub.id}>{sub.nombre}</option>
-                    ))}
-                </motion.select>
-                <div className="relative pointer-events-none">
-                  <i className="fas fa-chevron-down absolute bottom-3.5 right-4 text-gray-400"></i>
-                </div>
-              </motion.div>
             </div>
           </motion.aside>
 
@@ -582,10 +577,8 @@ export default function CatalogoPage() {
               <div className="mb-2 sm:mb-0">
                 {loading ? (
                   <span>Cargando...</span>
-                ) : hasActiveFilters() ? (
-                  <><span className="font-bold text-gray-800">{filteredCount}</span> productos encontrados</>
                 ) : (
-                  <>Mostrando <span className="font-bold text-gray-800">{filteredProducts.length}</span> de <span className="font-bold text-gray-800">{totalCount}</span> productos</>
+                  <>Mostrando <span className="font-bold text-gray-800">{totalCount}</span> productos</>
                 )}
               </div>
               <div className="flex items-center gap-3">
