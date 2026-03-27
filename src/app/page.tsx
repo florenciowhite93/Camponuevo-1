@@ -180,13 +180,18 @@ export default function HomePage() {
               <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900">{categoriasTitulo}</h2>
             </motion.div>
 
-            <div className="flex flex-wrap justify-center gap-8">
+            <motion.div 
+              className="flex flex-wrap justify-center gap-8"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               {categorias.map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/catalogo?categoria=${cat.id}`}
                   className="group bg-white border border-gray-100 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] hover:shadow-xl hover:border-[#4caf50] transition-all duration-300"
-                  style={{ animationDelay: `${0}s` }}
                 >
                   <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
                     {cat.icono_svg ? (
@@ -203,7 +208,7 @@ export default function HomePage() {
                   <p className="text-gray-500 text-sm">Ver productos</p>
                 </Link>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
