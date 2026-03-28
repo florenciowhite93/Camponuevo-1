@@ -85,6 +85,30 @@ export default function CatalogoPage() {
   }, [searchTerm, subcategorias.length]);
 
   useEffect(() => {
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlSearch = params.get("search") || "";
+      if (urlSearch !== searchTerm) {
+        setSearchTerm(urlSearch);
+      }
+    };
+
+    handleUrlChange();
+    
+    window.addEventListener("popstate", handleUrlChange);
+    const originalPushState = window.history.pushState;
+    window.history.pushState = function(...args) {
+      originalPushState.apply(window.history, args);
+      handleUrlChange();
+    };
+    
+    return () => {
+      window.removeEventListener("popstate", handleUrlChange);
+      window.history.pushState = originalPushState;
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (breedDropdownRef.current && !breedDropdownRef.current.contains(event.target as Node)) {
         setBreedDropdownOpen(false);
