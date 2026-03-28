@@ -279,7 +279,7 @@ export function Header() {
               <div ref={searchRef} className="relative">
                 <button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="p-2 text-gray-600 hover:text-[#2d5a27] transition"
+                  className="p-2 text-gray-600 hover:text-[#2d5a27] transition hover:bg-gray-100 rounded-full"
                 >
                   <Search size={22} />
                 </button>
