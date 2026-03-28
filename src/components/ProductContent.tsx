@@ -216,7 +216,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                     {subcategorias.map((sub) => (
                       <span
                         key={sub.id}
-                        className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200"
+                        className="px-3 py-1 rounded-md text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200"
                       >
                         {sub.nombre}
                       </span>
