@@ -70,7 +70,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
         className
       )}
     >
-      <Link href={`/catalogo/${productoSlug}`} className="block relative h-56 overflow-hidden bg-white border-b border-gray-100 flex items-center justify-center">
+      <Link href={`/catalogo/${productoSlug}`} className="block relative h-56 overflow-hidden bg-[#F3F4F6] border-b border-gray-100 flex items-center justify-center group-hover:bg-white transition-colors duration-300">
         {/* Etiquetas en borde superior izquierdo */}
         {etiquetas.length > 0 && (
           <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-20 max-w-[70%]">
@@ -105,14 +105,14 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
             {producto.especies.slice(0, 3).map((esp) => (
               <div
                 key={esp}
-                className="w-6 h-6 bg-white rounded-full shadow-sm flex items-center justify-center"
+                className="w-8 h-8 bg-white rounded-full shadow-sm flex items-center justify-center"
                 title={esp}
               >
                 <Image 
                   src={especieIconos[esp]} 
                   alt={esp} 
-                  width={16} 
-                  height={16}
+                  width={24} 
+                  height={24}
                   className="object-contain"
                 />
               </div>
