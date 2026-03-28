@@ -96,6 +96,19 @@ export default function AdminPage() {
   const [editLabelName, setEditLabelName] = useState("");
   const [editLabelColor, setEditLabelColor] = useState("#2d5a27");
 
+  // Bulk Selection States
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [showBulkPriceModal, setShowBulkPriceModal] = useState(false);
+  const [bulkPricePercent, setBulkPricePercent] = useState("");
+  const [showBulkLabelsModal, setShowBulkLabelsModal] = useState(false);
+  const [bulkSelectedLabels, setBulkSelectedLabels] = useState<string[]>([]);
+  const [bulkLabelsSearch, setBulkLabelsSearch] = useState("");
+  const [showBulkSubcatsModal, setShowBulkSubcatsModal] = useState(false);
+  const [bulkSelectedSubcats, setBulkSelectedSubcats] = useState<string[]>([]);
+  const [bulkSubcatsSearch, setBulkSubcatsSearch] = useState("");
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState("");
+
   // Forms
   const [productForm, setProductForm] = useState({
     titulo: "",
@@ -299,6 +312,88 @@ export default function AdminPage() {
       visible: false,
     };
     await supabase.from("productos").insert(newProduct);
+    await fetchAllData();
+  };
+
+  // --- BULK OPERATIONS ---
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProductIds(prev => 
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProductIds.length === filteredProducts.length) {
+      setSelectedProductIds([]);
+    } else {
+      setSelectedProductIds(filteredProducts.map(p => p.id));
+    }
+  };
+
+  const handleBulkPriceIncrease = async () => {
+    const percent = parseFloat(bulkPricePercent);
+    if (isNaN(percent) || percent <= 0) return;
+    
+    for (const id of selectedProductIds) {
+      const product = productos.find(p => p.id === id);
+      if (product && product.precio > 0) {
+        const newPrice = Math.round(product.precio * (1 + percent / 100) * 100) / 100;
+        await supabase.from("productos").update({ precio: newPrice, updated_at: new Date().toISOString() }).eq("id", id);
+      }
+    }
+    
+    setShowBulkPriceModal(false);
+    setBulkPricePercent("");
+    setSelectedProductIds([]);
+    await fetchAllData();
+  };
+
+  const handleBulkAddLabels = async () => {
+    for (const id of selectedProductIds) {
+      const product = productos.find(p => p.id === id);
+      if (product) {
+        const currentLabels = product.etiquetas_ids || [];
+        const newLabels = [...new Set([...currentLabels, ...bulkSelectedLabels])];
+        await supabase.from("productos").update({ etiquetas_ids: newLabels, updated_at: new Date().toISOString() }).eq("id", id);
+      }
+    }
+    
+    setShowBulkLabelsModal(false);
+    setBulkSelectedLabels([]);
+    setBulkLabelsSearch("");
+    setSelectedProductIds([]);
+    await fetchAllData();
+  };
+
+  const handleBulkAddSubcats = async () => {
+    for (const id of selectedProductIds) {
+      const product = productos.find(p => p.id === id);
+      if (product) {
+        const currentSubcats = product.subcategorias_ids || [];
+        const newSubcats = [...new Set([...currentSubcats, ...bulkSelectedSubcats])];
+        await supabase.from("productos").update({ subcategorias_ids: newSubcats, updated_at: new Date().toISOString() }).eq("id", id);
+      }
+    }
+    
+    setShowBulkSubcatsModal(false);
+    setBulkSelectedSubcats([]);
+    setBulkSubcatsSearch("");
+    setSelectedProductIds([]);
+    await fetchAllData();
+  };
+
+  const handleBulkDelete = async () => {
+    if (bulkDeleteConfirm.toUpperCase() !== "ELIMINAR") return;
+    
+    for (const id of selectedProductIds) {
+      await supabase.from("productos").delete().eq("id", id);
+    }
+    
+    setShowBulkDeleteModal(false);
+    setBulkDeleteConfirm("");
+    setSelectedProductIds([]);
     await fetchAllData();
   };
 
@@ -921,18 +1016,40 @@ export default function AdminPage() {
           {/* PRODUCTOS */}
           {activeView === "productos" && (
             <div>
-              <div className="bg-white rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
+              <div className="bg-white rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex-1 relative max-w-md">
                   <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input type="text" placeholder="Buscar productos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
                 </div>
+                {selectedProductIds.length > 0 && (
+                  <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+                    <span className="text-sm font-semibold text-blue-800">{selectedProductIds.length} seleccionados</span>
+                    <button onClick={() => setShowBulkPriceModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition flex items-center whitespace-nowrap">
+                      Aumento +%
+                    </button>
+                    <button onClick={() => setShowBulkLabelsModal(true)} className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition flex items-center whitespace-nowrap">
+                      Agregar Etiquetas
+                    </button>
+                    <button onClick={() => setShowBulkSubcatsModal(true)} className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition flex items-center whitespace-nowrap">
+                      Agregar Sub-cats
+                    </button>
+                    <button onClick={() => setShowBulkDeleteModal(true)} className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1.5 px-3 rounded shadow transition flex items-center whitespace-nowrap">
+                      Eliminar
+                    </button>
+                    <button onClick={() => setSelectedProductIds([])} className="text-blue-600 hover:text-blue-800 text-xs font-medium ml-2">Cancelar</button>
+                  </div>
+                )}
               </div>
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b">
                       <tr>
+                        <th className="text-center p-4 font-semibold text-gray-600 w-12">
+                          <input type="checkbox" checked={selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0} onChange={toggleSelectAll}
+                            className="w-4 h-4 rounded border-gray-300 text-[#2d5a27] focus:ring-[#2d5a27] cursor-pointer" />
+                        </th>
                         <th className="text-left p-4 font-semibold text-gray-600">Producto</th>
                         <th className="text-left p-4 font-semibold text-gray-600">Laboratorio</th>
                         <th className="text-left p-4 font-semibold text-gray-600">Especies</th>
@@ -943,7 +1060,11 @@ export default function AdminPage() {
                     </thead>
                     <tbody className="divide-y">
                       {filteredProducts.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50">
+                        <tr key={product.id} className={cn("hover:bg-gray-50", selectedProductIds.includes(product.id) && "bg-blue-50")}>
+                          <td className="p-4 text-center">
+                            <input type="checkbox" checked={selectedProductIds.includes(product.id)} onChange={() => toggleProductSelection(product.id)}
+                              className="w-4 h-4 rounded border-gray-300 text-[#2d5a27] focus:ring-[#2d5a27] cursor-pointer" />
+                          </td>
                           <td className="p-4"><p className="font-medium text-gray-900">{product.titulo}</p></td>
                           <td className="p-4 text-gray-600">{product.laboratorio_nombre}</td>
                           <td className="p-4">
@@ -1477,6 +1598,177 @@ export default function AdminPage() {
             <div className="p-4 border-t flex justify-end gap-3">
               <button onClick={() => setShowProductModal(false)} className="px-6 py-2 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">Cancelar</button>
               <button onClick={handleSaveProduct} className="px-6 py-2 bg-[#2d5a27] hover:bg-[#1b5e20] text-white rounded-xl font-medium">Guardar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL BULK PRECIO */}
+      {showBulkPriceModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowBulkPriceModal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-2xl shadow-2xl z-50 p-6">
+            <h2 className="text-xl font-bold mb-4">Aumentar Precios</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Se aumentará el precio de <strong>{selectedProductIds.length}</strong> productos seleccionados.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Porcentaje de aumento (%)</label>
+              <input type="number" value={bulkPricePercent} onChange={(e) => setBulkPricePercent(e.target.value)}
+                placeholder="Ej: 15"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => { setShowBulkPriceModal(false); setBulkPricePercent(""); }} className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">Cancelar</button>
+              <button onClick={handleBulkPriceIncrease} className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium">Aplicar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL BULK ETIQUETAS */}
+      {showBulkLabelsModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => { setShowBulkLabelsModal(false); setBulkSelectedLabels([]); setBulkLabelsSearch(""); }} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-50 p-6 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-2">Agregar Etiquetas</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Agregar etiquetas a <strong>{selectedProductIds.length}</strong> productos seleccionados.
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {bulkSelectedLabels.map((labelId) => {
+                const label = etiquetas.find(l => l.id === labelId);
+                return label ? (
+                  <span key={labelId} className="inline-flex items-center gap-1 px-3 py-1 text-white text-sm rounded-full" style={{ backgroundColor: label.color }}>
+                    {label.nombre}
+                    <button onClick={() => setBulkSelectedLabels(prev => prev.filter(id => id !== labelId))} className="hover:opacity-70">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ) : null;
+              })}
+            </div>
+            <div className="relative mb-4">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input type="text" value={bulkLabelsSearch} onChange={(e) => setBulkLabelsSearch(e.target.value)}
+                placeholder="Buscar etiqueta..."
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+            </div>
+            <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl mb-4">
+              {etiquetas.filter(e => 
+                e.nombre.toLowerCase().includes(bulkLabelsSearch.toLowerCase()) && 
+                !bulkSelectedLabels.includes(e.id)
+              ).length === 0 ? (
+                <p className="p-4 text-sm text-gray-500 text-center">No hay etiquetas disponibles</p>
+              ) : (
+                etiquetas.filter(e => 
+                  e.nombre.toLowerCase().includes(bulkLabelsSearch.toLowerCase()) && 
+                  !bulkSelectedLabels.includes(e.id)
+                ).map((label) => (
+                  <button key={label.id} onClick={() => setBulkSelectedLabels(prev => [...prev, label.id])}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-b-0">
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: label.color }} />
+                    <span className="text-sm">{label.nombre}</span>
+                  </button>
+                ))
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => { setShowBulkLabelsModal(false); setBulkSelectedLabels([]); setBulkLabelsSearch(""); }} className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">Cancelar</button>
+              <button onClick={handleBulkAddLabels} disabled={bulkSelectedLabels.length === 0}
+                className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-medium">Agregar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL BULK SUBCATEGORÍAS */}
+      {showBulkSubcatsModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => { setShowBulkSubcatsModal(false); setBulkSelectedSubcats([]); setBulkSubcatsSearch(""); }} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-50 p-6 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-2">Agregar Subcategorías</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Agregar subcategorías a <strong>{selectedProductIds.length}</strong> productos seleccionados.
+            </p>
+            <div className="mb-3 flex flex-wrap gap-2">
+              {bulkSelectedSubcats.map((subcatId) => {
+                const subcat = subcategorias.find(s => s.id === subcatId);
+                return subcat ? (
+                  <span key={subcatId} className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full border border-green-200">
+                    {subcat.nombre}
+                    <button onClick={() => setBulkSelectedSubcats(prev => prev.filter(id => id !== subcatId))} className="hover:opacity-70">
+                      <X size={14} />
+                    </button>
+                  </span>
+                ) : null;
+              })}
+            </div>
+            <div className="relative mb-4">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input type="text" value={bulkSubcatsSearch} onChange={(e) => setBulkSubcatsSearch(e.target.value)}
+                placeholder="Buscar subcategoría..."
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+            </div>
+            <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl mb-4">
+              {subcategorias.filter(s => 
+                s.nombre.toLowerCase().includes(bulkSubcatsSearch.toLowerCase()) && 
+                !bulkSelectedSubcats.includes(s.id)
+              ).length === 0 ? (
+                <p className="p-4 text-sm text-gray-500 text-center">No hay subcategorías disponibles</p>
+              ) : (
+                subcategorias.filter(s => 
+                  s.nombre.toLowerCase().includes(bulkSubcatsSearch.toLowerCase()) && 
+                  !bulkSelectedSubcats.includes(s.id)
+                ).map((subcat) => {
+                  const cat = categorias.find(c => c.id === subcat.categoria_id);
+                  return (
+                    <button key={subcat.id} onClick={() => setBulkSelectedSubcats(prev => [...prev, subcat.id])}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 last:border-b-0">
+                      <Layers size={16} className="text-gray-400" />
+                      <span className="text-sm">{subcat.nombre}</span>
+                      {cat && <span className="text-xs text-gray-400">({cat.nombre})</span>}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => { setShowBulkSubcatsModal(false); setBulkSelectedSubcats([]); setBulkSubcatsSearch(""); }} className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">Cancelar</button>
+              <button onClick={handleBulkAddSubcats} disabled={bulkSelectedSubcats.length === 0}
+                className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-medium">Agregar</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* MODAL BULK ELIMINAR */}
+      {showBulkDeleteModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => { setShowBulkDeleteModal(false); setBulkDeleteConfirm(""); }} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-white rounded-2xl shadow-2xl z-50 p-6">
+            <h2 className="text-xl font-bold mb-4 text-red-600">Eliminar Productos</h2>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-red-700 font-medium">
+                <i className="fas fa-exclamation-triangle mr-2"></i>
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Se eliminarán <strong>{selectedProductIds.length}</strong> productos del catálogo.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Escribí <span className="font-bold text-red-600">ELIMINAR</span> para confirmar:
+              </label>
+              <input type="text" value={bulkDeleteConfirm} onChange={(e) => setBulkDeleteConfirm(e.target.value)}
+                placeholder="ELIMINAR"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500" />
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => { setShowBulkDeleteModal(false); setBulkDeleteConfirm(""); }} className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">Cancelar</button>
+              <button onClick={handleBulkDelete} disabled={bulkDeleteConfirm.toUpperCase() !== "ELIMINAR"}
+                className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-medium">Eliminar</button>
             </div>
           </div>
         </>
