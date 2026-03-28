@@ -136,6 +136,14 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
 
+  // Editor product search states
+  const [labSearch, setLabSearch] = useState("");
+  const [showLabDropdown, setShowLabDropdown] = useState(false);
+  const [subcatSearch, setSubcatSearch] = useState("");
+  const [showSubcatDropdown, setShowSubcatDropdown] = useState(false);
+  const [etqSearch, setEtqSearch] = useState("");
+  const [showEtqDropdown, setShowEtqDropdown] = useState(false);
+
   // Check auth
   useEffect(() => {
     checkAuth();
@@ -196,6 +204,17 @@ export default function AdminPage() {
       console.error("Error fetching data:", error);
     }
   };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowLabDropdown(false);
+      setShowSubcatDropdown(false);
+      setShowEtqDropdown(false);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
@@ -1406,30 +1425,71 @@ export default function AdminPage() {
                   Laboratorio *
                 </h3>
                 <div className="relative">
-                  <select 
-                    value={productForm.laboratorio_id}
-                    onChange={(e) => setProductForm({...productForm, laboratorio_id: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] appearance-none pr-10"
-                  >
-                    <option value="">Selecciona un laboratorio...</option>
-                    {laboratorios.map((lab) => (
-                      <option key={lab.id} value={lab.id}>{lab.nombre}</option>
-                    ))}
-                  </select>
-                  <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 rotate-90 pointer-events-none" />
+                  <div className="relative">
+                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input 
+                      type="text" 
+                      value={labSearch || (productForm.laboratorio_id ? laboratorios.find(l => l.id === productForm.laboratorio_id)?.nombre || "" : "")}
+                      onChange={(e) => {
+                        setLabSearch(e.target.value);
+                        setShowLabDropdown(true);
+                      }}
+                      onFocus={() => setShowLabDropdown(true)}
+                      placeholder="Buscar laboratorio..."
+                      className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" 
+                    />
+                  </div>
+                  {showLabDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                      {laboratorios
+                        .filter(l => !labSearch || l.nombre.toLowerCase().includes(labSearch.toLowerCase()))
+                        .length === 0 && !labSearch ? (
+                        <div className="px-4 py-3 text-sm text-gray-500 text-center">Escribí para buscar...</div>
+                      ) : (
+                        <>
+                          {laboratorios
+                            .filter(l => !labSearch || l.nombre.toLowerCase().includes(labSearch.toLowerCase()))
+                            .map((lab) => (
+                              <button
+                                key={lab.id}
+                                onClick={() => {
+                                  setProductForm({...productForm, laboratorio_id: lab.id});
+                                  setLabSearch("");
+                                  setShowLabDropdown(false);
+                                }}
+                                className="w-full px-4 py-2.5 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                              >
+                                {lab.nombre}
+                              </button>
+                            ))
+                          }
+                          {(!labSearch || !laboratorios.some(l => l.nombre.toLowerCase() === labSearch.toLowerCase())) && (
+                            <button
+                              onClick={async () => {
+                                const nombre = labSearch?.trim() || prompt("Nombre del nuevo laboratorio:");
+                                if (nombre?.trim()) {
+                                  const { data } = await supabase.from("laboratorios").insert({ nombre: nombre.trim() }).select().single();
+                                  if (data) {
+                                    setLaboratorios([...laboratorios, data]);
+                                    setProductForm({...productForm, laboratorio_id: data.id});
+                                    setLabSearch("");
+                                    setShowLabDropdown(false);
+                                  }
+                                }
+                              }}
+                              className="w-full px-4 py-2.5 text-left text-[#2d5a27] hover:bg-green-50 border-t-2 border-[#2d5a27] font-medium"
+                            >
+                              <Plus size={14} className="inline mr-1" />
+                              Crear "{labSearch || "nuevo laboratorio"}"
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <button type="button" onClick={async () => {
-                  const nombre = prompt("Nombre del nuevo laboratorio:");
-                  if (nombre?.trim()) {
-                    const { data } = await supabase.from("laboratorios").insert({ nombre: nombre.trim() }).select().single();
-                    if (data) {
-                      setLaboratorios([...laboratorios, data]);
-                      setProductForm({...productForm, laboratorio_id: data.id});
-                    }
-                  }
-                }}
-                  className="text-xs text-[#2d5a27] hover:underline mt-3 font-medium">
-                  <Plus size={12} className="inline mr-1" />Agregar nuevo laboratorio
+                <button type="button" onClick={() => setShowLabDropdown(false)} className="text-xs text-gray-400 hover:text-gray-600 mt-2">
+                  {productForm.laboratorio_id && <span className="underline">Lab seleccionado: {laboratorios.find(l => l.id === productForm.laboratorio_id)?.nombre}</span>}
                 </button>
               </div>
 
@@ -1458,21 +1518,76 @@ export default function AdminPage() {
                         ) : null;
                       })}
                     </div>
-                    <select 
-                      onChange={(e) => {
-                        if (e.target.value && !productForm.subcategorias_ids.includes(e.target.value)) {
-                          setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, e.target.value]});
-                        }
-                        e.target.value = "";
-                      }}
-                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
-                    >
-                      <option value="">Buscar sub-categoría o crear nueva...</option>
-                      {subcategorias.filter(s => !productForm.subcategorias_ids.includes(s.id)).map((sub) => {
-                        const cat = categorias.find(c => c.id === sub.categoria_id);
-                        return <option key={sub.id} value={sub.id}>{sub.nombre} {cat ? `(${cat.nombre})` : ""}</option>;
-                      })}
-                    </select>
+                    <div className="relative">
+                      <div className="relative">
+                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input 
+                          type="text" 
+                          value={subcatSearch}
+                          onChange={(e) => {
+                            setSubcatSearch(e.target.value);
+                            setShowSubcatDropdown(true);
+                          }}
+                          onFocus={() => setShowSubcatDropdown(true)}
+                          placeholder="Buscar sub-categoría o crear nueva..."
+                          className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" 
+                        />
+                      </div>
+                      {showSubcatDropdown && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                          {subcategorias
+                            .filter(s => !subcatSearch || s.nombre.toLowerCase().includes(subcatSearch.toLowerCase()))
+                            .length === 0 && !subcatSearch ? (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">Escribí para buscar...</div>
+                          ) : (
+                            <>
+                              {subcategorias
+                                .filter(s => !subcatSearch || s.nombre.toLowerCase().includes(subcatSearch.toLowerCase()))
+                                .map((sub) => {
+                                  const cat = categorias.find(c => c.id === sub.categoria_id);
+                                  return (
+                                    <button
+                                      key={sub.id}
+                                      onClick={() => {
+                                        if (!productForm.subcategorias_ids.includes(sub.id)) {
+                                          setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, sub.id]});
+                                        }
+                                        setSubcatSearch("");
+                                        setShowSubcatDropdown(false);
+                                      }}
+                                      className="w-full px-4 py-2.5 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                                    >
+                                      {sub.nombre}
+                                      {cat && <span className="text-xs text-gray-400 ml-1">({cat.nombre})</span>}
+                                    </button>
+                                  );
+                                })
+                              }
+                              {(!subcatSearch || !subcategorias.some(s => s.nombre.toLowerCase() === subcatSearch.toLowerCase())) && (
+                                <button
+                                  onClick={async () => {
+                                    const nombre = subcatSearch?.trim() || prompt("Nombre de la nueva subcategoría:");
+                                    if (nombre?.trim()) {
+                                      const { data } = await supabase.from("subcategorias").insert({ nombre: nombre.trim() }).select().single();
+                                      if (data) {
+                                        setSubcategorias([...subcategorias, data]);
+                                        setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, data.id]});
+                                        setSubcatSearch("");
+                                        setShowSubcatDropdown(false);
+                                      }
+                                    }
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-[#2d5a27] hover:bg-green-50 border-t-2 border-[#2d5a27] font-medium"
+                                >
+                                  <Plus size={14} className="inline mr-1" />
+                                  Crear "{subcatSearch || "nueva subcategoría"}"
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Etiquetas */}
@@ -1491,20 +1606,74 @@ export default function AdminPage() {
                         ) : null;
                       })}
                     </div>
-                    <select 
-                      onChange={(e) => {
-                        if (e.target.value && !productForm.etiquetas_ids.includes(e.target.value)) {
-                          setProductForm({...productForm, etiquetas_ids: [...productForm.etiquetas_ids, e.target.value]});
-                        }
-                        e.target.value = "";
-                      }}
-                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
-                    >
-                      <option value="">Buscar etiqueta o crear nueva...</option>
-                      {etiquetas.filter(e => !productForm.etiquetas_ids.includes(e.id)).map((etq) => (
-                        <option key={etq.id} value={etq.id}>{etq.nombre}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <div className="relative">
+                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input 
+                          type="text" 
+                          value={etqSearch}
+                          onChange={(e) => {
+                            setEtqSearch(e.target.value);
+                            setShowEtqDropdown(true);
+                          }}
+                          onFocus={() => setShowEtqDropdown(true)}
+                          placeholder="Buscar etiqueta o crear nueva..."
+                          className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" 
+                        />
+                      </div>
+                      {showEtqDropdown && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                          {etiquetas
+                            .filter(e => !etqSearch || e.nombre.toLowerCase().includes(etqSearch.toLowerCase()))
+                            .length === 0 && !etqSearch ? (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">Escribí para buscar...</div>
+                          ) : (
+                            <>
+                              {etiquetas
+                                .filter(e => !etqSearch || e.nombre.toLowerCase().includes(etqSearch.toLowerCase()))
+                                .map((etq) => (
+                                  <button
+                                    key={etq.id}
+                                    onClick={() => {
+                                      if (!productForm.etiquetas_ids.includes(etq.id)) {
+                                        setProductForm({...productForm, etiquetas_ids: [...productForm.etiquetas_ids, etq.id]});
+                                      }
+                                      setEtqSearch("");
+                                      setShowEtqDropdown(false);
+                                    }}
+                                    className="w-full px-4 py-2.5 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center gap-2"
+                                  >
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: etq.color }} />
+                                    {etq.nombre}
+                                  </button>
+                                ))
+                              }
+                              {(!etqSearch || !etiquetas.some(e => e.nombre.toLowerCase() === etqSearch.toLowerCase())) && (
+                                <button
+                                  onClick={async () => {
+                                    const nombre = etqSearch?.trim() || prompt("Nombre de la nueva etiqueta:");
+                                    if (nombre?.trim()) {
+                                      const colorAleatorio = COLORES_ETIQUETAS[Math.floor(Math.random() * COLORES_ETIQUETAS.length)];
+                                      const { data } = await supabase.from("etiquetas").insert({ nombre: nombre.trim(), color: colorAleatorio }).select().single();
+                                      if (data) {
+                                        setEtiquetas([...etiquetas, data]);
+                                        setProductForm({...productForm, etiquetas_ids: [...productForm.etiquetas_ids, data.id]});
+                                        setEtqSearch("");
+                                        setShowEtqDropdown(false);
+                                      }
+                                    }
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-[#2d5a27] hover:bg-green-50 border-t-2 border-[#2d5a27] font-medium"
+                                >
+                                  <Plus size={14} className="inline mr-1" />
+                                  Crear "{etqSearch || "nueva etiqueta"}"
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
