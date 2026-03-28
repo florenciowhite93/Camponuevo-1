@@ -23,7 +23,10 @@ export function Footer() {
                   </g>
                 </svg>
               </div>
-              <span className="text-2xl font-bold uppercase">Camponuevo</span>
+              <span className="flex flex-col text-2xl font-bold uppercase leading-none">
+                CAMPO
+                NUEVO
+              </span>
             </div>
             <p className="text-gray-300 mb-6">
               Tu tienda agropecuaria de confianza para productos naturales, veterinarios y agrícolas.
