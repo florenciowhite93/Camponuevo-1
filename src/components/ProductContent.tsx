@@ -141,14 +141,14 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
 
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
             <div className="flex flex-col lg:flex-row">
-              <div className="lg:w-1/2 img-panel flex items-center justify-center relative min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200">
+              <div className="lg:w-1/2 img-panel flex items-center justify-center relative min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200 group overflow-hidden">
                 {producto.imagen ? (
                   <Image
                     src={producto.imagen}
                     alt={producto.titulo}
                     width={600}
                     height={500}
-                    className="relative z-10 max-w-[120%] w-[120%] h-auto object-contain"
+                    className="relative z-10 max-w-[120%] w-[120%] h-auto object-contain transition-transform duration-500 group-hover:scale-105"
                     style={{ marginLeft: "-10%", transformOrigin: "center center" }}
                     priority
                   />
@@ -204,7 +204,7 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                   </div>
                 )}
 
-                <div className="flex items-baseline gap-2 mb-4">
+                <div className="flex items-baseline gap-2 mb-8 mt-4">
                   {producto.precio > 0 ? (
                     <>
                       <span className="text-3xl font-bold text-gray-900">{formatPrice(producto.precio)}</span>
