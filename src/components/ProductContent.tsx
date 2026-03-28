@@ -155,7 +155,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
             <div className="flex flex-col lg:flex-row">
               <div 
-                className="lg:w-1/2 img-panel relative min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200 group overflow-hidden cursor-crosshair"
+                className="lg:w-1/2 img-panel flex items-center justify-center relative min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200 group overflow-hidden cursor-crosshair"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
               >
@@ -163,8 +163,9 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                   <Image
                     src={producto.imagen}
                     alt={producto.titulo}
-                    fill
-                    className="object-cover transition-transform duration-300 ease-out group-hover:scale-110"
+                    width={700}
+                    height={600}
+                    className="relative z-10 w-full h-auto object-contain transition-transform duration-300 ease-out group-hover:scale-125"
                     style={{
                       transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
                     }}
