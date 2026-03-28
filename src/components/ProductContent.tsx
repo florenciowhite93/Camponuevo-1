@@ -165,7 +165,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                     alt={producto.titulo}
                     width={700}
                     height={600}
-                    className="relative z-10 w-full h-auto object-contain transition-transform duration-300 ease-out group-hover:scale-125"
+                    className="relative z-10 w-full h-auto object-contain transition-transform duration-300 ease-out group-hover:scale-150"
                     style={{
                       transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
                     }}
