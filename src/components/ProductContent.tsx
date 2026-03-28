@@ -198,7 +198,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                 </h1>
 
                 {etiquetas.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {etiquetas.map((etq) => (
                       <span
                         key={etq.id}
@@ -211,8 +211,19 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                   </div>
                 )}
 
+                <div className="flex items-baseline gap-2 mb-1">
+                  {producto.precio > 0 ? (
+                    <>
+                      <span className="text-3xl font-bold text-gray-900">{formatPrice(producto.precio)}</span>
+                      <span className="text-lg text-gray-400">+ IVA</span>
+                    </>
+                  ) : (
+                    <span className="text-xl font-semibold text-amber-600">Consultar</span>
+                  )}
+                </div>
+
                 {subcategorias.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-6">
                     {subcategorias.map((sub) => (
                       <span
                         key={sub.id}
@@ -224,7 +235,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                   </div>
                 )}
 
-                <div className="flex items-baseline gap-2 mb-8 mt-4">
+                <div className="flex items-baseline gap-2 mb-8">
                   {producto.precio > 0 ? (
                     <>
                       <span className="text-3xl font-bold text-gray-900">{formatPrice(producto.precio)}</span>
@@ -406,7 +417,14 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                 return (
                   <div className="p-6 grid grid-cols-1 gap-6">
                     <div className={cn("grid grid-cols-1 gap-6", cols)}>
-                      {fields.map(f => f.content)}
+                      {fields.map((f, idx) => (
+                        <div key={f.key} className={cn(
+                          idx > 0 && "md:border-l md:border-gray-200 md:pl-6",
+                          idx === 1 && fields.length === 3 && "lg:border-l lg:border-gray-200 lg:pl-6"
+                        )}>
+                          {f.content}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
