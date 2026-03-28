@@ -232,7 +232,7 @@ export function Header({ cartCount = 0 }: HeaderProps) {
               </div>
               <span className="flex flex-col items-center text-xl font-bold font-serif text-[#2d5a27] uppercase leading-none gap-0">
                 CAMPO
-                <span className="tracking-[0.05em]">NUEVO</span>
+                <span>NUEVO</span>
               </span>
             </Link>
 

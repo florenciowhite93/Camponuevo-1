@@ -25,7 +25,7 @@ export function Footer() {
               </div>
               <span className="flex flex-col items-center text-2xl font-bold font-serif text-white uppercase leading-none gap-0">
                 CAMPO
-                <span className="tracking-[0.05em]">NUEVO</span>
+                <span>NUEVO</span>
               </span>
             </div>
             <p className="text-gray-300 mb-6">
