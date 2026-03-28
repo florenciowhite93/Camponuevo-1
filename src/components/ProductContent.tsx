@@ -187,12 +187,12 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                   </span>
                 )}
 
-                <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-800 mb-3">
                   {producto.titulo}
                 </h1>
 
                 {etiquetas.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {etiquetas.map((etq) => (
                       <span
                         key={etq.id}
@@ -206,7 +206,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                 )}
 
                 {subcategorias.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mb-3">
                     {subcategorias.map((sub) => (
                       <span
                         key={sub.id}
@@ -218,7 +218,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                   </div>
                 )}
 
-                <div className="flex items-baseline gap-2 mt-3 mb-6">
+                <div className="flex items-baseline gap-2 mb-6">
                   {producto.precio > 0 ? (
                     <>
                       <span className="text-3xl font-bold text-gray-900">{formatPrice(producto.precio)}</span>
