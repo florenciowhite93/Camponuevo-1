@@ -181,7 +181,7 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
 
               <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col">
                 {producto.laboratorio_nombre && (
-                  <span className="text-sm font-semibold text-[#0a92cf] mb-2">
+                  <span className="inline-block px-3 py-1 bg-[#0a92cf]/10 border border-[#0a92cf] text-[#0a92cf] text-sm font-medium rounded-full mb-3 w-fit">
                     {producto.laboratorio_nombre}
                   </span>
                 )}
