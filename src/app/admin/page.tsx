@@ -1412,24 +1412,63 @@ export default function AdminPage() {
                     <label htmlFor="visible" className="text-sm text-gray-700">Visible en tienda</label>
                   </div>
                 </div>
-                {/* Preview */}
+                {/* Image Selector with Drag & Drop */}
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <h4 className="text-sm font-semibold text-gray-500 mb-4">Vista previa</h4>
-                  <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                      {productForm.imagen ? (
-                        <img src={productForm.imagen} alt="Preview" className="w-full h-full object-contain p-4" />
-                      ) : (<i className="fas fa-image text-4xl text-gray-300"></i>)}
-                    </div>
-                    <div className="p-4">
-                      <h5 className="font-semibold line-clamp-2">{productForm.titulo || "Nombre del producto"}</h5>
-                      <p className="text-sm text-[#4caf50] mt-1">
-                        {laboratorios.find(l => l.id === productForm.laboratorio_id)?.nombre}
-                      </p>
-                      <p className="text-xl font-bold text-[#2d5a27] mt-2">
-                        {productForm.precio ? formatPrice(parseFloat(productForm.precio)) : "Consultar"}
-                      </p>
-                    </div>
+                  <h4 className="text-sm font-semibold text-gray-500 mb-4">Imagen del Producto</h4>
+                  <div 
+                    className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#2d5a27] transition-colors cursor-pointer"
+                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
+                    onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]');
+                      const file = e.dataTransfer.files[0];
+                      if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          setProductForm({...productForm, imagen: event.target?.result as string});
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            setProductForm({...productForm, imagen: event.target?.result as string});
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      };
+                      input.click();
+                    }}
+                  >
+                    {productForm.imagen ? (
+                      <div className="relative">
+                        <img src={productForm.imagen} alt="Preview" className="max-h-48 mx-auto rounded-lg object-contain" />
+                        <p className="text-xs text-gray-500 mt-2">Arrastrá una imagen o hacé clic para cambiar</p>
+                      </div>
+                    ) : (
+                      <>
+                        <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                        <p className="text-sm text-gray-500">Arrastrá una imagen aquí o hacé clic para seleccionar</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP hasta 5MB</p>
+                      </>
+                    )}
+                  </div>
+                  <div className="mt-3">
+                    <input 
+                      type="url" 
+                      value={productForm.imagen} 
+                      onChange={(e) => setProductForm({...productForm, imagen: e.target.value})}
+                      placeholder="O pegá una URL de imagen..."
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] text-sm"
+                    />
                   </div>
                 </div>
               </div>
