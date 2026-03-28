@@ -235,17 +235,6 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                   </div>
                 )}
 
-                <div className="flex items-baseline gap-2 mb-8">
-                  {producto.precio > 0 ? (
-                    <>
-                      <span className="text-3xl font-bold text-gray-900">{formatPrice(producto.precio)}</span>
-                      <span className="text-lg text-gray-400">+ IVA</span>
-                    </>
-                  ) : (
-                    <span className="text-xl font-semibold text-amber-600">Consultar</span>
-                  )}
-                </div>
-
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-sm font-medium text-gray-600">Cantidad:</span>
                   <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-2 py-1 border border-gray-200">
