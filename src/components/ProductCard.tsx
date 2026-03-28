@@ -70,7 +70,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
         className
       )}
     >
-      <Link href={`/catalogo/${productoSlug}`} className="block relative h-56 overflow-hidden bg-[#F3F4F6] border-b border-gray-100 flex items-center justify-center group-hover:bg-white transition-colors duration-300">
+      <Link href={`/catalogo/${productoSlug}`} className="block relative h-56 overflow-hidden bg-gray-100 border-b border-gray-200 flex items-center justify-center group-hover:bg-white transition-colors duration-300 shadow-[inset_0_-2px_4px_rgba(0,0,0,0.02)]">
         {/* Etiquetas en borde superior izquierdo */}
         {etiquetas.length > 0 && (
           <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-20 max-w-[70%]">
@@ -101,7 +101,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
         
         {/* Species icons at bottom left */}
         {producto.especies && producto.especies.length > 0 && (
-          <div className="absolute bottom-2 left-2 flex flex-wrap gap-1 z-10">
+          <div className="absolute bottom-2 right-2 flex flex-wrap gap-1 z-10">
             {producto.especies.slice(0, 3).map((esp) => (
               <div
                 key={esp}
