@@ -50,14 +50,39 @@ export default function CatalogoPage() {
   const breedDropdownRef2 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchInitialData();
+    const loadData = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const search = params.get("search");
+        
+        const [labRes, catRes, subcatRes] = await Promise.all([
+          supabase.from("laboratorios").select("id, nombre").order("nombre"),
+          supabase.from("categorias").select("id, nombre").order("nombre"),
+          supabase.from("subcategorias").select("id, nombre, categoria_id").order("nombre"),
+        ]);
+        
+        setLaboratorios(labRes.data || []);
+        setCategorias(catRes.data || []);
+        setSubcategorias(subcatRes.data || []);
+        
+        if (search) {
+          setSearchTerm(search);
+        } else {
+          fetchInitialData();
+        }
+      } catch (error) {
+        console.error("Error loading metadata:", error);
+      }
+    };
     
-    const params = new URLSearchParams(window.location.search);
-    const search = params.get("search");
-    if (search) {
-      setSearchTerm(search);
-    }
+    loadData();
   }, []);
+
+  useEffect(() => {
+    if (searchTerm && subcategorias.length > 0) {
+      loadFilteredProducts(true);
+    }
+  }, [searchTerm, subcategorias.length]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
