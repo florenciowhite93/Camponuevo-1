@@ -149,8 +149,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                     alt={producto.titulo}
                     width={600}
                     height={500}
-                    className="relative z-10 max-w-[120%] w-[120%] h-auto object-contain transition-transform duration-500 group-hover:scale-105"
-                    style={{ marginLeft: "-10%", transformOrigin: "center center" }}
+                    className="relative z-10 max-w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
                     priority
                   />
                 ) : (
