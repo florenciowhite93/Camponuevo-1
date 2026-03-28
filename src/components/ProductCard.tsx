@@ -143,7 +143,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
         <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
           <div>
             {producto.volumen && (
-              <span className="text-[11px] text-gray-400 block mb-0.5">{producto.volumen}</span>
+              <span className="text-xs text-gray-400 block mb-0.5">{producto.volumen}</span>
             )}
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-black text-gray-900">
