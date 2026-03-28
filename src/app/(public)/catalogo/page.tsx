@@ -428,7 +428,7 @@ const loadFilteredProducts = async (reset = false) => {
 
   return (
     <>
-      <Header cartCount={0} />
+      <Header />
 
       <main className="flex-1 pt-20">
       <motion.div 

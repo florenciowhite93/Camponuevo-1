@@ -101,7 +101,7 @@ export default function HomePage() {
 
   return (
     <>
-      <Header cartCount={0} />
+      <Header />
 
       <main className="flex-1 pt-20">
         {/* Hero Section */}

@@ -278,7 +278,7 @@ function CuentaContent() {
   if (loading) {
     return (
       <>
-        <Header cartCount={0} />
+        <Header />
         <main className="flex-1 pt-20 bg-gray-50">
           <div className="container mx-auto px-4 py-12">
             <div className="flex items-center justify-center h-64">
@@ -294,7 +294,7 @@ function CuentaContent() {
   if (!user) {
     return (
       <>
-        <Header cartCount={0} />
+        <Header />
         <main className="flex-1 pt-20 bg-gray-50">
           <div className="container mx-auto px-4 py-12">
             <div className="max-w-md mx-auto text-center bg-white rounded-2xl p-8 shadow-sm">
@@ -317,7 +317,7 @@ function CuentaContent() {
 
   return (
     <>
-      <Header cartCount={0} />
+      <Header />
 
       <main className="flex-1 pt-20 bg-gray-50">
         <div className="container mx-auto px-4 py-12">
@@ -742,7 +742,7 @@ export default function CuentaPage() {
   return (
     <Suspense fallback={
       <>
-        <Header cartCount={0} />
+        <Header />
         <main className="flex-1 pt-20 bg-gray-50">
           <div className="container mx-auto px-4 py-12">
             <div className="flex items-center justify-center h-64">

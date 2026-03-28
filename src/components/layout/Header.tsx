@@ -7,18 +7,15 @@ import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
 import { cn, createSlug } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { useCarrito } from "@/context/CarritoContext";
 import type { Producto } from "@/types";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const supabase = createClient();
 
-interface HeaderProps {
-  cartCount?: number;
-}
-
-export function Header({ cartCount = 0 }: HeaderProps) {
+export function Header() {
   const router = useRouter();
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { totalItems, toggleCart } = useCarrito();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -404,13 +401,13 @@ export function Header({ cartCount = 0 }: HeaderProps) {
 
               {/* Cart */}
               <button
-                onClick={() => setIsCartOpen(true)}
-                className="relative p-2 text-gray-600 hover:text-[#2d5a27] transition"
+                onClick={toggleCart}
+                className="relative p-2 text-gray-600 hover:text-[#2d5a27] transition hover:bg-gray-100 rounded-full"
               >
                 <ShoppingCart size={22} />
-                {cartCount > 0 && (
+                {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                    {cartCount}
+                    {totalItems}
                   </span>
                 )}
               </button>
@@ -572,39 +569,6 @@ export function Header({ cartCount = 0 }: HeaderProps) {
           </div>
         )}
       </header>
-
-      {/* Cart Sidebar */}
-      {isCartOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-50"
-            onClick={() => setIsCartOpen(false)}
-          />
-          <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl">
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-xl font-bold">Carrito de Compras</h2>
-                <button
-                  onClick={() => setIsCartOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-6">
-                <p className="text-gray-500 text-center">
-                  Tu carrito está vacío
-                </p>
-              </div>
-              <div className="p-6 border-t">
-                <button className="w-full bg-[#2d5a27] hover:bg-[#1b5e20] text-white py-4 rounded-xl font-bold transition">
-                  Finalizar Compra
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </>
   );
 }
