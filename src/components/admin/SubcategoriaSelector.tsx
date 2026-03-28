@@ -15,17 +15,27 @@ interface SubcategoriaSelectorProps {
 
 export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorProps) {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [subcategoriasSinCategoria, setSubcategoriasSinCategoria] = useState<Subcategoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [expandedSinCategoria, setExpandedSinCategoria] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const loadCategorias = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("categorias")
-      .select("*, subcategorias(id, nombre, categoria_id)")
-      .order("orden", { ascending: true });
-    setCategorias(data || []);
+    const [categoriasResult, subcategoriasResult] = await Promise.all([
+      supabase
+        .from("categorias")
+        .select("*, subcategorias(id, nombre, categoria_id)")
+        .order("orden", { ascending: true }),
+      supabase
+        .from("subcategorias")
+        .select("id, nombre, categoria_id")
+        .is("categoria_id", null)
+        .order("nombre", { ascending: true })
+    ]);
+    setCategorias(categoriasResult.data || []);
+    setSubcategoriasSinCategoria(subcategoriasResult.data || []);
     setLoading(false);
   }, []);
 
@@ -41,6 +51,10 @@ export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorP
     );
   };
 
+  const toggleExpandSinCategoria = () => {
+    setExpandedSinCategoria((prev) => !prev);
+  };
+
   const selectedSubcategoriasIds = config.subcategorias_ids || [];
   const selectedSubcategorias = selectedSubcategoriasIds
     .map((id) => {
@@ -48,6 +62,8 @@ export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorP
         const sub = cat.subcategorias?.find((s) => s.id === id);
         if (sub) return { ...sub, categoriaNombre: cat.nombre };
       }
+      const sinCat = subcategoriasSinCategoria.find((s) => s.id === id);
+      if (sinCat) return { ...sinCat, categoriaNombre: "Sin categoría" };
       return null;
     })
     .filter(Boolean) as (Subcategoria & { categoriaNombre: string })[];
@@ -79,6 +95,10 @@ export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorP
       if (cat.nombre.toLowerCase().includes(searchTerm.toLowerCase())) return true;
       return cat.subcategorias && cat.subcategorias.length > 0;
     });
+
+  const filteredSinCategoria = subcategoriasSinCategoria
+    .filter((sub) => sub.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   const getProductCount = async (subcategoriaId: string): Promise<number> => {
     const { count } = await supabase
@@ -233,6 +253,58 @@ export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorP
                 </div>
               );
             })}
+
+            {subcategoriasSinCategoria.length > 0 && (
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <button
+                  onClick={toggleExpandSinCategoria}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 transition bg-gray-50 hover:bg-gray-100"
+                  )}
+                >
+                  {expandedSinCategoria ? (
+                    <ChevronDown size={16} className="text-gray-400" />
+                  ) : (
+                    <ChevronRight size={16} className="text-gray-400" />
+                  )}
+                  <span className="flex-1 text-left font-medium text-gray-600">Sin categoría</span>
+                  <span className="text-xs text-gray-500">
+                    {filteredSinCategoria.length} subcategorías
+                  </span>
+                </button>
+                {expandedSinCategoria && (
+                  <div className="border-t border-gray-100">
+                    {filteredSinCategoria.map((sub) => {
+                      const isSelected = selectedSubcategoriasIds.includes(sub.id);
+                      return (
+                        <button
+                          key={sub.id}
+                          onClick={() => toggleSubcategoria(sub)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-4 py-3 text-left transition border-b last:border-b-0",
+                            isSelected
+                              ? "bg-green-50"
+                              : "bg-white hover:bg-gray-50"
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded border flex items-center justify-center",
+                              isSelected
+                                ? "bg-green-600 border-green-600"
+                                : "border-gray-300"
+                            )}
+                          >
+                            {isSelected && <Check size={12} className="text-white" />}
+                          </div>
+                          <span className="flex-1">{sub.nombre}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

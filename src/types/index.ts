@@ -31,7 +31,7 @@ export interface Categoria {
 export interface Subcategoria {
   id: string;
   nombre: string;
-  categoria_id: string;
+  categoria_id?: string | null;
 }
 
 export interface Laboratorio {

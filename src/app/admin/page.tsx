@@ -460,10 +460,10 @@ export default function AdminPage() {
   };
 
   const handleCreateSubcategory = async () => {
-    if (!subcategoryForm.nombre.trim() || !subcategoryForm.categoria_id) return;
+    if (!subcategoryForm.nombre.trim()) return;
     await supabase.from("subcategorias").insert({ 
       nombre: subcategoryForm.nombre.trim(), 
-      categoria_id: subcategoryForm.categoria_id 
+      categoria_id: subcategoryForm.categoria_id || null 
     });
     setSubcategoryForm({ nombre: "", categoria_id: "" });
     await fetchAllData();
@@ -1240,7 +1240,7 @@ export default function AdminPage() {
                 <div className="flex gap-3 flex-wrap">
                   <select value={subcategoryForm.categoria_id} onChange={(e) => setSubcategoryForm({ ...subcategoryForm, categoria_id: e.target.value })}
                     className="flex-1 min-w-[200px] px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]">
-                    <option value="">Seleccionar categoría...</option>
+                    <option value="">Sin categoría</option>
                     {categorias.map((cat) => (<option key={cat.id} value={cat.id}>{cat.nombre}</option>))}
                   </select>
                   <input type="text" placeholder="Nombre de la subcategoría..." value={subcategoryForm.nombre} onChange={(e) => setSubcategoryForm({ ...subcategoryForm, nombre: e.target.value })}

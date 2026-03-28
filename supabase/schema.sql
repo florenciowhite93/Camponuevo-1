@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS public.categorias (
 CREATE TABLE IF NOT EXISTS public.subcategorias (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   nombre TEXT NOT NULL,
-  categoria_id UUID REFERENCES public.categorias(id) ON DELETE CASCADE,
+  categoria_id UUID REFERENCES public.categorias(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
