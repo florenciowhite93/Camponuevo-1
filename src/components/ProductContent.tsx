@@ -23,13 +23,7 @@ function ReglaIcon() {
 
 function EspecieIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 10.5C13.1046 10.5 14 9.60457 14 8.5C14 7.39543 13.1046 6.5 12 6.5C10.8954 6.5 10 7.39543 10 8.5C10 9.60457 10.8954 10.5 12 10.5Z" stroke="#2d5a27" strokeWidth="2"/>
-      <path d="M19 10.5C20.1046 10.5 21 9.60457 21 8.5C21 7.39543 20.1046 6.5 19 6.5C17.8954 6.5 17 7.39543 17 8.5C17 9.60457 17.8954 10.5 19 10.5Z" stroke="#2d5a27" strokeWidth="2"/>
-      <path d="M5 10.5C6.10457 10.5 7 9.60457 7 8.5C7 7.39543 6.10457 6.5 5 6.5C3.89543 6.5 3 7.39543 3 8.5C3 9.60457 3.89543 10.5 5 10.5Z" stroke="#2d5a27" strokeWidth="2"/>
-      <path d="M12 17C13.657 17 15 15.9853 15 14.5C15 13.0147 13.657 12 12 12C10.343 12 9 13.0147 9 14.5C9 15.9853 10.343 17 12 17Z" stroke="#2d5a27" strokeWidth="2"/>
-      <path d="M12 21C13.657 21 15 19.9853 15 18.5C15 17.0147 13.657 16 12 16C10.343 16 9 17.0147 9 18.5C9 19.9853 10.343 21 12 21Z" stroke="#2d5a27" strokeWidth="2"/>
-    </svg>
+    <Image src="/svg/especie.svg" alt="Especies" width={20} height={20} className="object-contain" />
   );
 }
 
