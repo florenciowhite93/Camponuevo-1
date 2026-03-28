@@ -1361,80 +1361,96 @@ export default function AdminPage() {
         <>
           <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowProductModal(false)} />
           <div className="fixed inset-4 md:inset-auto md:top-4 md:left-1/2 md:-translate-x-1/2 md:right-4 md:bottom-4 bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden max-h-[calc(100vh-2rem)]">
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center justify-between p-4 border-b bg-gray-50">
               <h2 className="text-xl font-bold">{editingProduct ? "Editar Producto" : "Nuevo Producto"}</h2>
-              <button onClick={() => setShowProductModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={24} /></button>
+              <button onClick={() => setShowProductModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition"><X size={24} /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              
+              {/* SECCIÓN: Información Básica */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-[#2d5a27] text-white text-xs flex items-center justify-center mr-2">1</span>
+                  Información Básica
+                </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Título del Producto *</label>
                     <input type="text" value={productForm.titulo} onChange={(e) => setProductForm({...productForm, titulo: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Nombre del producto" />
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej. Dardox Konig 5lt." />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Precio *</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Precio ($) *</label>
                       <input type="number" value={productForm.precio} onChange={(e) => setProductForm({...productForm, precio: e.target.value})}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="0.00" />
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="0.00" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Volumen</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Volumen / Peso</label>
                       <input type="text" value={productForm.volumen} onChange={(e) => setProductForm({...productForm, volumen: e.target.value})}
-                        className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej: 5L" />
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej. 1L, 500g, 24 Bolos" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Laboratorio</label>
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        value={productForm.laboratorio_id ? laboratorios.find(l => l.id === productForm.laboratorio_id)?.nombre || "" : ""} 
-                        onChange={(e) => {
-                          const found = laboratorios.find(l => l.nombre.toLowerCase().includes(e.target.value.toLowerCase()));
-                          if (found) {
-                            setProductForm({...productForm, laboratorio_id: found.id});
-                          } else {
-                            setProductForm({...productForm, laboratorio_id: ""});
-                          }
-                        }}
-                        placeholder="Buscar o crear laboratorio..."
-                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
-                        list="lab-list"
-                      />
-                      <datalist id="lab-list">
-                        {laboratorios.map((lab) => (<option key={lab.id} value={lab.nombre} />))}
-                      </datalist>
-                      <button 
-                        type="button"
-                        onClick={async () => {
-                          const nombre = prompt("Nombre del nuevo laboratorio:");
-                          if (nombre?.trim()) {
-                            const { data } = await supabase.from("laboratorios").insert({ nombre: nombre.trim() }).select().single();
-                            if (data) {
-                              setLaboratorios([...laboratorios, data]);
-                              setProductForm({...productForm, laboratorio_id: data.id});
-                            }
-                          }
-                        }}
-                        className="px-3 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition"
-                        title="Crear nuevo laboratorio"
-                      >
-                        <Plus size={18} />
-                      </button>
-                    </div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Descripción</label>
+                    <textarea value={productForm.descripcion} onChange={(e) => setProductForm({...productForm, descripcion: e.target.value})}
+                      rows={2} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Descripción del producto..." />
                   </div>
+                </div>
+              </div>
+
+              {/* SECCIÓN: Laboratorio */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-[#2d5a27] text-white text-xs flex items-center justify-center mr-2">2</span>
+                  Laboratorio *
+                </h3>
+                <div className="relative">
+                  <select 
+                    value={productForm.laboratorio_id}
+                    onChange={(e) => setProductForm({...productForm, laboratorio_id: e.target.value})}
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] appearance-none pr-10"
+                  >
+                    <option value="">Selecciona un laboratorio...</option>
+                    {laboratorios.map((lab) => (
+                      <option key={lab.id} value={lab.id}>{lab.nombre}</option>
+                    ))}
+                  </select>
+                  <ChevronRight size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 rotate-90 pointer-events-none" />
+                </div>
+                <button type="button" onClick={async () => {
+                  const nombre = prompt("Nombre del nuevo laboratorio:");
+                  if (nombre?.trim()) {
+                    const { data } = await supabase.from("laboratorios").insert({ nombre: nombre.trim() }).select().single();
+                    if (data) {
+                      setLaboratorios([...laboratorios, data]);
+                      setProductForm({...productForm, laboratorio_id: data.id});
+                    }
+                  }
+                }}
+                  className="text-xs text-[#2d5a27] hover:underline mt-3 font-medium">
+                  <Plus size={12} className="inline mr-1" />Agregar nuevo laboratorio
+                </button>
+              </div>
+
+              {/* SECCIÓN: Clasificación */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-[#2d5a27] text-white text-xs flex items-center justify-center mr-2">3</span>
+                  Clasificación
+                </h3>
+                <div className="space-y-5">
+                  {/* Subcategorías */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Subcategorías</label>
-                    <div className="flex flex-wrap gap-2 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Sub-Categorías</label>
+                    <div className="flex flex-wrap gap-2 mb-3 min-h-[32px]">
                       {productForm.subcategorias_ids.map((subId) => {
                         const sub = subcategorias.find(s => s.id === subId);
                         const cat = categorias.find(c => c.id === sub?.categoria_id);
                         return sub ? (
-                          <span key={subId} className="inline-flex items-center gap-1 px-2 py-1 bg-[#f1f8e9] text-[#2d5a27] text-sm rounded-full">
+                          <span key={subId} className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 text-[#2d5a27] text-sm rounded-lg">
                             {sub.nombre}
-                            {cat && <span className="text-xs text-gray-500">({cat.nombre})</span>}
+                            {cat && <span className="text-xs text-gray-400">({cat.nombre})</span>}
                             <button onClick={() => setProductForm({...productForm, subcategorias_ids: productForm.subcategorias_ids.filter(id => id !== subId)})} className="ml-1 hover:text-red-500">
                               <X size={14} />
                             </button>
@@ -1442,162 +1458,196 @@ export default function AdminPage() {
                         ) : null;
                       })}
                     </div>
-                    <div className="flex gap-2">
-                      <select 
-                        onChange={(e) => {
-                          if (e.target.value && !productForm.subcategorias_ids.includes(e.target.value)) {
-                            setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, e.target.value]});
-                          }
-                          e.target.value = "";
-                        }}
-                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
-                      >
-                        <option value="">Agregar subcategoría...</option>
-                        {subcategorias.filter(s => !productForm.subcategorias_ids.includes(s.id)).map((sub) => {
-                          const cat = categorias.find(c => c.id === sub.categoria_id);
-                          return <option key={sub.id} value={sub.id}>{sub.nombre} {cat ? `(${cat.nombre})` : ""}</option>;
-                        })}
-                      </select>
-                      <button 
-                        type="button"
-                        onClick={async () => {
-                          const nombre = prompt("Nombre de la nueva subcategoría:");
-                          if (nombre?.trim()) {
-                            const catId = prompt("ID de categoría (deja vacío si no tiene):")?.trim();
-                            const { data } = await supabase.from("subcategorias").insert({ 
-                              nombre: nombre.trim(), 
-                              categoria_id: catId || null 
-                            }).select().single();
-                            if (data) {
-                              setSubcategorias([...subcategorias, data]);
-                              setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, data.id]});
-                            }
-                          }
-                        }}
-                        className="px-3 py-2 bg-[#2d5a27] text-white rounded-lg hover:bg-[#1b5e20] transition"
-                        title="Crear nueva subcategoría"
-                      >
-                        <Plus size={18} />
-                      </button>
+                    <select 
+                      onChange={(e) => {
+                        if (e.target.value && !productForm.subcategorias_ids.includes(e.target.value)) {
+                          setProductForm({...productForm, subcategorias_ids: [...productForm.subcategorias_ids, e.target.value]});
+                        }
+                        e.target.value = "";
+                      }}
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
+                    >
+                      <option value="">Buscar sub-categoría o crear nueva...</option>
+                      {subcategorias.filter(s => !productForm.subcategorias_ids.includes(s.id)).map((sub) => {
+                        const cat = categorias.find(c => c.id === sub.categoria_id);
+                        return <option key={sub.id} value={sub.id}>{sub.nombre} {cat ? `(${cat.nombre})` : ""}</option>;
+                      })}
+                    </select>
+                  </div>
+
+                  {/* Etiquetas */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Etiquetas</label>
+                    <div className="flex flex-wrap gap-2 mb-3 min-h-[32px]">
+                      {productForm.etiquetas_ids.map((etqId) => {
+                        const etq = etiquetas.find(e => e.id === etqId);
+                        return etq ? (
+                          <span key={etqId} className="inline-flex items-center gap-1 px-3 py-1.5 text-white text-sm rounded-lg" style={{ backgroundColor: etq.color }}>
+                            {etq.nombre}
+                            <button onClick={() => setProductForm({...productForm, etiquetas_ids: productForm.etiquetas_ids.filter(id => id !== etqId)})} className="hover:opacity-70">
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ) : null;
+                      })}
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                    <textarea value={productForm.descripcion} onChange={(e) => setProductForm({...productForm, descripcion: e.target.value})}
-                      rows={3} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Descripción..." />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Composición</label>
-                    <input type="text" value={productForm.drogas} onChange={(e) => setProductForm({...productForm, drogas: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej: Ibuprofeno 500mg" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Dosis Recomendada</label>
-                    <input type="text" value={productForm.dosis} onChange={(e) => setProductForm({...productForm, dosis: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej: 1 vez al día" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Indicaciones</label>
-                    <textarea value={productForm.indicaciones} onChange={(e) => setProductForm({...productForm, indicaciones: e.target.value})}
-                      rows={3} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Indicaciones del producto..." />
+                    <select 
+                      onChange={(e) => {
+                        if (e.target.value && !productForm.etiquetas_ids.includes(e.target.value)) {
+                          setProductForm({...productForm, etiquetas_ids: [...productForm.etiquetas_ids, e.target.value]});
+                        }
+                        e.target.value = "";
+                      }}
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]"
+                    >
+                      <option value="">Buscar etiqueta o crear nueva...</option>
+                      {etiquetas.filter(e => !productForm.etiquetas_ids.includes(e.id)).map((etq) => (
+                        <option key={etq.id} value={etq.id}>{etq.nombre}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-                {/* Image Selector with Drag & Drop */}
+              </div>
+
+              {/* SECCIÓN: Especies y Composición */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-[#2d5a27] text-white text-xs flex items-center justify-center mr-2">4</span>
+                  Especies y Composición
+                </h3>
                 <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-gray-500 mb-4">Imagen del Producto</h4>
-                    <div 
-                      className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#2d5a27] transition-colors cursor-pointer"
-                      onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
-                      onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]');
-                        const file = e.dataTransfer.files[0];
-                        if (file && file.type.startsWith('image/')) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            setProductForm({...productForm, imagen: event.target?.result as string});
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                              setProductForm({...productForm, imagen: event.target?.result as string});
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        };
-                        input.click();
-                      }}
-                    >
-                      {productForm.imagen ? (
-                        <div className="relative">
-                          <img src={productForm.imagen} alt="Preview" className="max-h-48 mx-auto rounded-lg object-contain" />
-                          <p className="text-xs text-gray-500 mt-2">Arrastrá una imagen o hacé clic para cambiar</p>
-                        </div>
-                      ) : (
-                        <>
-                          <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                          <p className="text-sm text-gray-500">Arrastrá una imagen aquí o hacé clic para seleccionar</p>
-                          <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP hasta 5MB</p>
-                        </>
-                      )}
-                    </div>
-                    <div className="mt-3">
-                      <label className="block text-xs font-medium text-gray-500 mb-1">URL Imagen</label>
-                      <input 
-                        type="url" 
-                        value={productForm.imagen} 
-                        onChange={(e) => setProductForm({...productForm, imagen: e.target.value})}
-                        placeholder="O pegá una URL de imagen..."
-                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] text-sm"
-                      />
-                    </div>
-                  </div>
-                  {/* Especies, Link y Visible */}
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Especies de Destino</label>
-                      <div className="flex flex-wrap gap-2">
-                        {ESPECIES.map((esp) => (
-                          <button key={esp} type="button" onClick={() => {
+                  {/* Especies */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Especies de Destino</label>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      {ESPECIES.map((esp) => (
+                        <label key={esp} className={cn(
+                          "flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border cursor-pointer transition",
+                          productForm.especies.includes(esp) 
+                            ? "bg-[#2d5a27] text-white border-[#2d5a27]" 
+                            : "bg-white text-gray-700 border-gray-200 hover:border-[#2d5a27]"
+                        )}>
+                          <input type="checkbox" checked={productForm.especies.includes(esp)} onChange={() => {
                             const newEspecies = productForm.especies.includes(esp)
                               ? productForm.especies.filter(e => e !== esp)
                               : [...productForm.especies, esp];
                             setProductForm({...productForm, especies: newEspecies});
-                          }}
-                            className={cn("px-3 py-1 rounded-full text-sm font-medium transition", productForm.especies.includes(esp) ? "bg-[#2d5a27] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")}>
-                            {esp}
-                          </button>
-                        ))}
-                      </div>
+                          }} className="sr-only" />
+                          <span className="text-sm font-medium capitalize">{esp}</span>
+                        </label>
+                      ))}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Link Externo</label>
-                      <input type="url" value={productForm.link_externo} onChange={(e) => setProductForm({...productForm, link_externo: e.target.value})}
-                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://..." />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" checked={productForm.visible} onChange={(e) => setProductForm({...productForm, visible: e.target.checked})}
-                        className="w-4 h-4 rounded border-gray-300 text-[#2d5a27]" id="visible" />
-                      <label htmlFor="visible" className="text-sm text-gray-700">Visible en tienda</label>
-                    </div>
+                  </div>
+
+                  {/* Composición */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Drogas / Principios Activos</label>
+                    <input type="text" value={productForm.drogas} onChange={(e) => setProductForm({...productForm, drogas: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej. Eprinomectina 0,5g, Flumetrina 2g" />
+                  </div>
+
+                  {/* Dosis */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Dosis Recomendada</label>
+                    <textarea value={productForm.dosis} onChange={(e) => setProductForm({...productForm, dosis: e.target.value})}
+                      rows={2} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Dosis recomendada..." />
+                  </div>
+
+                  {/* Indicaciones */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Indicaciones</label>
+                    <textarea value={productForm.indicaciones} onChange={(e) => setProductForm({...productForm, indicaciones: e.target.value})}
+                      rows={2} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Indicaciones del producto..." />
                   </div>
                 </div>
               </div>
+
+              {/* SECCIÓN: Imagen */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-[#2d5a27] text-white text-xs flex items-center justify-center mr-2">5</span>
+                  Imagen del Producto
+                </h3>
+                <div className="flex flex-col gap-3">
+                  <input type="url" value={productForm.imagen} onChange={(e) => setProductForm({...productForm, imagen: e.target.value})}
+                    placeholder="https://ejemplo.com/imagen.jpg (URL de imagen)"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+                  <div className="flex items-center py-2">
+                    <div className="flex-1 border-t border-gray-300"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase font-medium">o</span>
+                    <div className="flex-1 border-t border-gray-300"></div>
+                  </div>
+                  <div 
+                    className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-[#f1f8e9] hover:border-[#2d5a27] transition group"
+                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
+                    onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]');
+                      const file = e.dataTransfer.files[0];
+                      if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => setProductForm({...productForm, imagen: event.target?.result as string});
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = 'image/*';
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => setProductForm({...productForm, imagen: event.target?.result as string});
+                          reader.readAsDataURL(file);
+                        }
+                      };
+                      input.click();
+                    }}
+                  >
+                    {productForm.imagen ? (
+                      <div className="relative w-full">
+                        <img src={productForm.imagen} alt="Preview" className="max-h-40 mx-auto rounded-lg object-contain" />
+                        <p className="text-xs text-gray-500 mt-3">Hacé clic o arrastrá una imagen para cambiar</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 group-hover:text-[#2d5a27] mb-3 transition">
+                          <i className="fas fa-cloud-upload-alt text-2xl"></i>
+                        </div>
+                        <p className="text-base font-medium text-gray-600">Haz clic o arrastrá una imagen aquí</p>
+                        <p className="text-xs text-gray-400 mt-2">PNG, JPG, WEBP hasta 5MB</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SECCIÓN: Información Adicional */}
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-6 h-6 rounded-full bg-[#2d5a27] text-white text-xs flex items-center justify-center mr-2">6</span>
+                  Información Adicional
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Link Externo</label>
+                    <input type="url" value={productForm.link_externo} onChange={(e) => setProductForm({...productForm, link_externo: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://www.laboratorio.com/producto" />
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <input type="checkbox" checked={productForm.visible} onChange={(e) => setProductForm({...productForm, visible: e.target.checked})}
+                      className="w-5 h-5 rounded border-gray-300 text-[#2d5a27] focus:ring-[#2d5a27]" id="visible" />
+                    <label htmlFor="visible" className="text-sm font-medium text-gray-700">Visible en tienda</label>
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <div className="p-4 border-t flex justify-end gap-3">
-              <button onClick={() => setShowProductModal(false)} className="px-6 py-2 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">Cancelar</button>
-              <button onClick={handleSaveProduct} className="px-6 py-2 bg-[#2d5a27] hover:bg-[#1b5e20] text-white rounded-xl font-medium">Guardar</button>
+            <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
+              <button onClick={() => setShowProductModal(false)} className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition">Cancelar</button>
+              <button onClick={handleSaveProduct} className="px-5 py-2.5 bg-[#2d5a27] hover:bg-[#1b5e20] text-white rounded-lg font-medium transition shadow-lg">Guardar Producto</button>
             </div>
           </div>
         </>
