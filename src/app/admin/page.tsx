@@ -1366,11 +1366,6 @@ export default function AdminPage() {
                       rows={3} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Descripción..." />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">URL Imagen</label>
-                    <input type="url" value={productForm.imagen} onChange={(e) => setProductForm({...productForm, imagen: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://..." />
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Composición</label>
                     <input type="text" value={productForm.drogas} onChange={(e) => setProductForm({...productForm, drogas: e.target.value})}
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej: Ibuprofeno 500mg" />
@@ -1384,32 +1379,6 @@ export default function AdminPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Indicaciones</label>
                     <textarea value={productForm.indicaciones} onChange={(e) => setProductForm({...productForm, indicaciones: e.target.value})}
                       rows={3} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Indicaciones del producto..." />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Especies de Destino</label>
-                    <div className="flex flex-wrap gap-2">
-                      {ESPECIES.map((esp) => (
-                        <button key={esp} type="button" onClick={() => {
-                          const newEspecies = productForm.especies.includes(esp)
-                            ? productForm.especies.filter(e => e !== esp)
-                            : [...productForm.especies, esp];
-                          setProductForm({...productForm, especies: newEspecies});
-                        }}
-                          className={cn("px-3 py-1 rounded-full text-sm font-medium transition", productForm.especies.includes(esp) ? "bg-[#2d5a27] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")}>
-                          {esp}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Externo</label>
-                    <input type="url" value={productForm.link_externo} onChange={(e) => setProductForm({...productForm, link_externo: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://..." />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={productForm.visible} onChange={(e) => setProductForm({...productForm, visible: e.target.checked})}
-                      className="w-4 h-4 rounded border-gray-300 text-[#2d5a27]" id="visible" />
-                    <label htmlFor="visible" className="text-sm text-gray-700">Visible en tienda</label>
                   </div>
                 </div>
                 {/* Image Selector with Drag & Drop */}
@@ -1462,6 +1431,7 @@ export default function AdminPage() {
                     )}
                   </div>
                   <div className="mt-3">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">URL Imagen</label>
                     <input 
                       type="url" 
                       value={productForm.imagen} 
@@ -1469,6 +1439,35 @@ export default function AdminPage() {
                       placeholder="O pegá una URL de imagen..."
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] text-sm"
                     />
+                  </div>
+                </div>
+                {/* Especies, Link y Visible */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Especies de Destino</label>
+                    <div className="flex flex-wrap gap-2">
+                      {ESPECIES.map((esp) => (
+                        <button key={esp} type="button" onClick={() => {
+                          const newEspecies = productForm.especies.includes(esp)
+                            ? productForm.especies.filter(e => e !== esp)
+                            : [...productForm.especies, esp];
+                          setProductForm({...productForm, especies: newEspecies});
+                        }}
+                          className={cn("px-3 py-1 rounded-full text-sm font-medium transition", productForm.especies.includes(esp) ? "bg-[#2d5a27] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")}>
+                          {esp}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Externo</label>
+                    <input type="url" value={productForm.link_externo} onChange={(e) => setProductForm({...productForm, link_externo: e.target.value})}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://..." />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={productForm.visible} onChange={(e) => setProductForm({...productForm, visible: e.target.checked})}
+                      className="w-4 h-4 rounded border-gray-300 text-[#2d5a27]" id="visible" />
+                    <label htmlFor="visible" className="text-sm text-gray-700">Visible en tienda</label>
                   </div>
                 </div>
               </div>
