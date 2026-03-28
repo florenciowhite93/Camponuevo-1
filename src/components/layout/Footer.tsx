@@ -23,9 +23,9 @@ export function Footer() {
                   </g>
                 </svg>
               </div>
-              <span className="flex flex-col text-2xl font-bold uppercase leading-none">
+              <span className="flex flex-col items-center text-2xl font-bold font-serif text-white uppercase leading-none gap-0">
                 CAMPO
-                NUEVO
+                <span className="tracking-[0.35em]">NUEVO</span>
               </span>
             </div>
             <p className="text-gray-300 mb-6">

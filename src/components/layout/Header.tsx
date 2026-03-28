@@ -230,9 +230,9 @@ export function Header({ cartCount = 0 }: HeaderProps) {
                   </g>
                 </svg>
               </div>
-              <span className="flex flex-col text-xl font-bold text-[#2d5a27] uppercase leading-none">
+              <span className="flex flex-col items-center text-xl font-bold font-serif text-[#2d5a27] uppercase leading-none gap-0">
                 CAMPO
-                NUEVO
+                <span className="tracking-[0.35em]">NUEVO</span>
               </span>
             </Link>
 
