@@ -69,6 +69,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
   const [cantidad, setCantidad] = useState(1);
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-AR", {
@@ -81,6 +82,17 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
     addItem(producto, cantidad);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePosition({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePosition({ x: 50, y: 50 });
   };
 
   const getWhatsAppLink = () => {
@@ -142,14 +154,21 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
 
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
             <div className="flex flex-col lg:flex-row">
-              <div className="lg:w-1/2 img-panel flex items-center justify-center relative min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200 group overflow-hidden">
+              <div 
+                className="lg:w-1/2 img-panel flex items-center justify-center relative min-h-[400px] lg:min-h-[500px] border-b lg:border-b-0 lg:border-r border-gray-200 group overflow-hidden cursor-crosshair"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+              >
                 {producto.imagen ? (
                   <Image
                     src={producto.imagen}
                     alt={producto.titulo}
                     width={600}
                     height={500}
-                    className="relative z-10 max-w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                    className="relative z-10 max-w-full h-auto object-contain transition-transform duration-300 ease-out group-hover:scale-125"
+                    style={{
+                      transformOrigin: `${mousePosition.x}% ${mousePosition.y}%`,
+                    }}
                     priority
                   />
                 ) : (
