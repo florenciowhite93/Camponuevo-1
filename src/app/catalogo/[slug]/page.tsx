@@ -46,13 +46,13 @@ async function getProductoBySlug(slug: string) {
     .from("productos")
     .select(`*, laboratorio:laboratorios(nombre)`)
     .eq("visible", true)
-    .limit(100);
+    .limit(500);
 
   if (!productos) return null;
 
   for (const producto of productos) {
     const productoSlug = createSlug(producto.titulo);
-    if (productoSlug === slug || `${productoSlug}-a` === slug) {
+    if (productoSlug === slug || `${productoSlug}-a` === slug || `${productoSlug}-b` === slug) {
       return { producto, isLegacyId: false };
     }
   }

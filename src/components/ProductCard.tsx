@@ -122,11 +122,11 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
       </Link>
 
       <div className="p-6 flex flex-col flex-grow">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-xs font-semibold text-[#2d5a27] uppercase tracking-wider">
-            {producto.laboratorio_nombre || "Varios"}
-          </div>
-        </div>
+        {producto.laboratorio_nombre && (
+          <span className="inline-block px-2 py-0.5 bg-[#0a92cf]/10 border border-[#0a92cf] text-[#0a92cf] text-xs font-medium rounded-full mb-2 w-fit">
+            {producto.laboratorio_nombre}
+          </span>
+        )}
         
         <Link href={`/catalogo/${productoSlug}`}>
           <h3 className="text-xl font-bold mb-2 text-gray-800 line-clamp-2 hover:text-[#2d5a27] transition">
