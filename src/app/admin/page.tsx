@@ -135,6 +135,8 @@ export default function AdminPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Editor product search states
   const [labSearch, setLabSearch] = useState("");
@@ -854,7 +856,45 @@ export default function AdminPage() {
 
   const filteredProducts = productos.filter(p => 
     p.titulo?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aVal: any, bVal: any;
+    
+    switch (sortField) {
+      case 'titulo':
+        aVal = a.titulo?.toLowerCase() || '';
+        bVal = b.titulo?.toLowerCase() || '';
+        break;
+      case 'laboratorio':
+        aVal = a.laboratorio_nombre?.toLowerCase() || '';
+        bVal = b.laboratorio_nombre?.toLowerCase() || '';
+        break;
+      case 'precio':
+        aVal = a.precio || 0;
+        bVal = b.precio || 0;
+        break;
+      case 'visible':
+        aVal = a.visible ? 1 : 0;
+        bVal = b.visible ? 1 : 0;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const filteredPedidos = filterEstado 
     ? pedidos.filter(p => p.estado === filterEstado)
@@ -1069,11 +1109,39 @@ export default function AdminPage() {
                           <input type="checkbox" checked={selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0} onChange={toggleSelectAll}
                             className="w-4 h-4 rounded border-gray-300 text-[#2d5a27] focus:ring-[#2d5a27] cursor-pointer" />
                         </th>
-                        <th className="text-left p-4 font-semibold text-gray-600">Producto</th>
-                        <th className="text-left p-4 font-semibold text-gray-600">Laboratorio</th>
+                        <th className="text-left p-4 font-semibold cursor-pointer hover:text-[#2d5a27] transition" onClick={() => handleSort('titulo')}>
+                          <div className="flex items-center gap-1">
+                            Producto
+                            {sortField === 'titulo' && (
+                              <i className={cn("fas", sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down', "text-xs text-[#2d5a27]")}></i>
+                            )}
+                          </div>
+                        </th>
+                        <th className="text-left p-4 font-semibold cursor-pointer hover:text-[#2d5a27] transition" onClick={() => handleSort('laboratorio')}>
+                          <div className="flex items-center gap-1">
+                            Laboratorio
+                            {sortField === 'laboratorio' && (
+                              <i className={cn("fas", sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down', "text-xs text-[#2d5a27]")}></i>
+                            )}
+                          </div>
+                        </th>
                         <th className="text-left p-4 font-semibold text-gray-600">Especies</th>
-                        <th className="text-left p-4 font-semibold text-gray-600">Precio</th>
-                        <th className="text-center p-4 font-semibold text-gray-600">Visible</th>
+                        <th className="text-left p-4 font-semibold cursor-pointer hover:text-[#2d5a27] transition" onClick={() => handleSort('precio')}>
+                          <div className="flex items-center gap-1">
+                            Precio
+                            {sortField === 'precio' && (
+                              <i className={cn("fas", sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down', "text-xs text-[#2d5a27]")}></i>
+                            )}
+                          </div>
+                        </th>
+                        <th className="text-center p-4 font-semibold cursor-pointer hover:text-[#2d5a27] transition" onClick={() => handleSort('visible')}>
+                          <div className="flex items-center justify-center gap-1">
+                            Visible
+                            {sortField === 'visible' && (
+                              <i className={cn("fas", sortDirection === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down', "text-xs text-[#2d5a27]")}></i>
+                            )}
+                          </div>
+                        </th>
                         <th className="text-center p-4 font-semibold text-gray-600">Acciones</th>
                       </tr>
                     </thead>
