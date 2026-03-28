@@ -1382,92 +1382,94 @@ export default function AdminPage() {
                   </div>
                 </div>
                 {/* Image Selector with Drag & Drop */}
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <h4 className="text-sm font-semibold text-gray-500 mb-4">Imagen del Producto</h4>
-                  <div 
-                    className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#2d5a27] transition-colors cursor-pointer"
-                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
-                    onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]');
-                      const file = e.dataTransfer.files[0];
-                      if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          setProductForm({...productForm, imagen: event.target?.result as string});
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*';
-                      input.onchange = (e) => {
-                        const file = (e.target as HTMLInputElement).files?.[0];
-                        if (file) {
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="text-sm font-semibold text-gray-500 mb-4">Imagen del Producto</h4>
+                    <div 
+                      className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#2d5a27] transition-colors cursor-pointer"
+                      onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
+                      onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]'); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-[#2d5a27]', 'bg-[#f1f8e9]');
+                        const file = e.dataTransfer.files[0];
+                        if (file && file.type.startsWith('image/')) {
                           const reader = new FileReader();
                           reader.onload = (event) => {
                             setProductForm({...productForm, imagen: event.target?.result as string});
                           };
                           reader.readAsDataURL(file);
                         }
-                      };
-                      input.click();
-                    }}
-                  >
-                    {productForm.imagen ? (
-                      <div className="relative">
-                        <img src={productForm.imagen} alt="Preview" className="max-h-48 mx-auto rounded-lg object-contain" />
-                        <p className="text-xs text-gray-500 mt-2">Arrastrá una imagen o hacé clic para cambiar</p>
-                      </div>
-                    ) : (
-                      <>
-                        <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-                        <p className="text-sm text-gray-500">Arrastrá una imagen aquí o hacé clic para seleccionar</p>
-                        <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP hasta 5MB</p>
-                      </>
-                    )}
-                  </div>
-                  <div className="mt-3">
-                    <label className="block text-xs font-medium text-gray-500 mb-1">URL Imagen</label>
-                    <input 
-                      type="url" 
-                      value={productForm.imagen} 
-                      onChange={(e) => setProductForm({...productForm, imagen: e.target.value})}
-                      placeholder="O pegá una URL de imagen..."
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] text-sm"
-                    />
-                  </div>
-                </div>
-                {/* Especies, Link y Visible */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Especies de Destino</label>
-                    <div className="flex flex-wrap gap-2">
-                      {ESPECIES.map((esp) => (
-                        <button key={esp} type="button" onClick={() => {
-                          const newEspecies = productForm.especies.includes(esp)
-                            ? productForm.especies.filter(e => e !== esp)
-                            : [...productForm.especies, esp];
-                          setProductForm({...productForm, especies: newEspecies});
-                        }}
-                          className={cn("px-3 py-1 rounded-full text-sm font-medium transition", productForm.especies.includes(esp) ? "bg-[#2d5a27] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")}>
-                          {esp}
-                        </button>
-                      ))}
+                      }}
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              setProductForm({...productForm, imagen: event.target?.result as string});
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      {productForm.imagen ? (
+                        <div className="relative">
+                          <img src={productForm.imagen} alt="Preview" className="max-h-48 mx-auto rounded-lg object-contain" />
+                          <p className="text-xs text-gray-500 mt-2">Arrastrá una imagen o hacé clic para cambiar</p>
+                        </div>
+                      ) : (
+                        <>
+                          <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                          <p className="text-sm text-gray-500">Arrastrá una imagen aquí o hacé clic para seleccionar</p>
+                          <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP hasta 5MB</p>
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <label className="block text-xs font-medium text-gray-500 mb-1">URL Imagen</label>
+                      <input 
+                        type="url" 
+                        value={productForm.imagen} 
+                        onChange={(e) => setProductForm({...productForm, imagen: e.target.value})}
+                        placeholder="O pegá una URL de imagen..."
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] text-sm"
+                      />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Link Externo</label>
-                    <input type="url" value={productForm.link_externo} onChange={(e) => setProductForm({...productForm, link_externo: e.target.value})}
-                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://..." />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={productForm.visible} onChange={(e) => setProductForm({...productForm, visible: e.target.checked})}
-                      className="w-4 h-4 rounded border-gray-300 text-[#2d5a27]" id="visible" />
-                    <label htmlFor="visible" className="text-sm text-gray-700">Visible en tienda</label>
+                  {/* Especies, Link y Visible */}
+                  <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Especies de Destino</label>
+                      <div className="flex flex-wrap gap-2">
+                        {ESPECIES.map((esp) => (
+                          <button key={esp} type="button" onClick={() => {
+                            const newEspecies = productForm.especies.includes(esp)
+                              ? productForm.especies.filter(e => e !== esp)
+                              : [...productForm.especies, esp];
+                            setProductForm({...productForm, especies: newEspecies});
+                          }}
+                            className={cn("px-3 py-1 rounded-full text-sm font-medium transition", productForm.especies.includes(esp) ? "bg-[#2d5a27] text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")}>
+                            {esp}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Link Externo</label>
+                      <input type="url" value={productForm.link_externo} onChange={(e) => setProductForm({...productForm, link_externo: e.target.value})}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="https://..." />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" checked={productForm.visible} onChange={(e) => setProductForm({...productForm, visible: e.target.checked})}
+                        className="w-4 h-4 rounded border-gray-300 text-[#2d5a27]" id="visible" />
+                      <label htmlFor="visible" className="text-sm text-gray-700">Visible en tienda</label>
+                    </div>
                   </div>
                 </div>
               </div>

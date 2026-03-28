@@ -16,6 +16,12 @@ interface Etiqueta {
   color: string;
 }
 
+interface Subcategoria {
+  id: string;
+  nombre: string;
+  categoria_id: string;
+}
+
 function isUUID(str: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
@@ -60,6 +66,17 @@ async function getEtiquetas(producto: Producto): Promise<Etiqueta[]> {
     .from("etiquetas")
     .select("*")
     .in("id", producto.etiquetas_ids);
+
+  return data || [];
+}
+
+async function getSubcategorias(producto: Producto): Promise<Subcategoria[]> {
+  if (!producto.subcategorias_ids || producto.subcategorias_ids.length === 0) return [];
+
+  const { data } = await supabase
+    .from("subcategorias")
+    .select("*")
+    .in("id", producto.subcategorias_ids);
 
   return data || [];
 }
@@ -148,6 +165,7 @@ export default async function ProductPage({
   }
 
   const etiquetas = await getEtiquetas(producto);
+  const subcategorias = await getSubcategorias(producto);
   const productosRelacionados = await getProductosRelacionados(producto);
 
   const productoData: Producto = {
@@ -159,6 +177,7 @@ export default async function ProductPage({
     <ProductContent
       producto={productoData}
       etiquetas={etiquetas}
+      subcategorias={subcategorias}
       productosRelacionados={productosRelacionados}
     />
   );

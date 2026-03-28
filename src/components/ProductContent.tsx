@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCarrito } from "@/context/CarritoContext";
@@ -57,13 +57,20 @@ interface Etiqueta {
   color: string;
 }
 
+interface Subcategoria {
+  id: string;
+  nombre: string;
+  categoria_id: string;
+}
+
 interface ProductContentProps {
   producto: Producto;
   etiquetas: Etiqueta[];
+  subcategorias: Subcategoria[];
   productosRelacionados: Producto[];
 }
 
-export function ProductContent({ producto, etiquetas, productosRelacionados }: ProductContentProps) {
+export function ProductContent({ producto, etiquetas, subcategorias, productosRelacionados }: ProductContentProps) {
   const { addItem } = useCarrito();
   const [cantidad, setCantidad] = useState(1);
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
@@ -199,6 +206,19 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                         style={{ backgroundColor: etq.color }}
                       >
                         {etq.nombre}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {subcategorias.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {subcategorias.map((sub) => (
+                      <span
+                        key={sub.id}
+                        className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200"
+                      >
+                        {sub.nombre}
                       </span>
                     ))}
                   </div>
@@ -346,48 +366,51 @@ export function ProductContent({ producto, etiquetas, productosRelacionados }: P
                 />
               </button>
 
-              {isDetailsOpen && (
-                <div className="p-6 space-y-6">
-                  {producto.indicaciones && (
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                        <i className="fas fa-clipboard-list mr-2 text-[#2d5a27]"></i>
-                        Indicaciones
-                      </h4>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {producto.indicaciones}
-                      </p>
+              {isDetailsOpen && (() => {
+                const fields: { key: string; content: React.ReactNode }[] = [];
+                if (producto.indicaciones) fields.push({ key: 'ind', content: (
+                  <div key="ind">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                      <i className="fas fa-clipboard-list mr-2 text-[#2d5a27]"></i>
+                      Indicaciones
+                    </h4>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{producto.indicaciones}</p>
+                  </div>
+                )});
+                if (producto.drogas) fields.push({ key: 'dro', content: (
+                  <div key="dro">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                      <i className="fas fa-flask mr-2 text-[#2d5a27]"></i>
+                      Composición
+                    </h4>
+                    <ul className="space-y-2 text-gray-700">
+                      {producto.drogas.split(";").map((drug, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <i className="fas fa-circle text-xs text-[#4caf50] mt-2"></i>
+                          <span>{drug.trim()}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )});
+                if (producto.dosis) fields.push({ key: 'dos', content: (
+                  <div key="dos">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                      <i className="fas fa-syringe mr-2 text-[#2d5a27]"></i>
+                      Dosis y Administración
+                    </h4>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{producto.dosis}</p>
+                  </div>
+                )});
+                const cols = fields.length === 2 ? 'md:grid-cols-2' : fields.length === 3 ? 'md:grid-cols-3' : 'grid-cols-1';
+                return (
+                  <div className="p-6 grid grid-cols-1 gap-6">
+                    <div className={cn("grid grid-cols-1 gap-6", cols)}>
+                      {fields.map(f => f.content)}
                     </div>
-                  )}
-                  {producto.drogas && (
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                        <i className="fas fa-flask mr-2 text-[#2d5a27]"></i>
-                        Composición
-                      </h4>
-                      <ul className="space-y-2 text-gray-700">
-                        {producto.drogas.split(";").map((drug, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <i className="fas fa-circle text-xs text-[#4caf50] mt-2"></i>
-                            <span>{drug.trim()}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {producto.dosis && (
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
-                        <i className="fas fa-syringe mr-2 text-[#2d5a27]"></i>
-                        Dosis y Administración
-                      </h4>
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {producto.dosis}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
