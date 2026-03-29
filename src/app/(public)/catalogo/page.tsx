@@ -88,9 +88,7 @@ export default function CatalogoPage() {
     const handleUrlChange = () => {
       const params = new URLSearchParams(window.location.search);
       const urlSearch = params.get("search") || "";
-      if (urlSearch !== searchTerm) {
-        setSearchTerm(urlSearch);
-      }
+      setSearchTerm(urlSearch);
     };
 
     handleUrlChange();
@@ -106,7 +104,7 @@ export default function CatalogoPage() {
       window.removeEventListener("popstate", handleUrlChange);
       window.history.pushState = originalPushState;
     };
-  }, [searchTerm]);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -120,6 +118,20 @@ export default function CatalogoPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const currentSearch = url.searchParams.get("search") || "";
+    
+    if (searchTerm !== currentSearch) {
+      if (searchTerm) {
+        url.searchParams.set("search", searchTerm);
+      } else {
+        url.searchParams.delete("search");
+      }
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [searchTerm]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -555,9 +567,24 @@ const loadFilteredProducts = async (reset = false) => {
                     placeholder="Ej. Ivermectina..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition"
+                    className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent transition"
                   />
                   <i className="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm("");
+                        const url = new URL(window.location.href);
+                        url.searchParams.delete("search");
+                        window.history.pushState({}, "", url.toString());
+                        loadProductsSorted();
+                      }}
+                      className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 transition"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  )}
                 </div>
               </motion.div>
 
