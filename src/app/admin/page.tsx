@@ -108,6 +108,7 @@ export default function AdminPage() {
   const [bulkSubcatsSearch, setBulkSubcatsSearch] = useState("");
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Forms
   const [productForm, setProductForm] = useState({
@@ -272,6 +273,43 @@ export default function AdminPage() {
 
   const handleSaveProduct = async () => {
     try {
+      let finalImageUrl = productForm.imagen;
+      const isBase64 = productForm.imagen && productForm.imagen.startsWith('data:');
+      const isSupabaseUrl = productForm.imagen && productForm.imagen.includes('supabase');
+
+      if (isBase64 && !isSupabaseUrl) {
+        setIsUploadingImage(true);
+        try {
+          const base64Data = productForm.imagen.split(',')[1];
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'image/jpeg' });
+          
+          const fileName = `productos/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('productos')
+            .upload(fileName, blob, { contentType: 'image/jpeg' });
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('productos')
+            .getPublicUrl(fileName);
+          
+          finalImageUrl = publicUrl;
+        } catch (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          alert('Error al subir la imagen. Se guardará sin imagen.');
+          finalImageUrl = '';
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
       const productData = {
         titulo: productForm.titulo,
         precio: parseFloat(productForm.precio) || 0,
@@ -284,7 +322,7 @@ export default function AdminPage() {
         especies: productForm.especies,
         etiquetas_ids: productForm.etiquetas_ids,
         subcategorias_ids: productForm.subcategorias_ids,
-        imagen: productForm.imagen,
+        imagen: finalImageUrl,
         link_externo: productForm.link_externo,
         visible: productForm.visible,
         updated_at: new Date().toISOString(),
@@ -1906,7 +1944,9 @@ export default function AdminPage() {
             </div>
             <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
               <button onClick={() => setShowProductModal(false)} className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition">Cancelar</button>
-              <button onClick={handleSaveProduct} className="px-5 py-2.5 bg-[#2d5a27] hover:bg-[#1b5e20] text-white rounded-lg font-medium transition shadow-lg">Guardar Producto</button>
+              <button onClick={handleSaveProduct} disabled={isUploadingImage} className="px-5 py-2.5 bg-[#2d5a27] hover:bg-[#1b5e20] disabled:bg-gray-400 text-white rounded-lg font-medium transition shadow-lg">
+                {isUploadingImage ? 'Subiendo imagen...' : 'Guardar Producto'}
+              </button>
             </div>
           </div>
         </>
