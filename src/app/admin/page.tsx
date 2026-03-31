@@ -287,12 +287,16 @@ export default function AdminPage() {
             byteNumbers[i] = byteCharacters.charCodeAt(i);
           }
           const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: 'image/jpeg' });
           
-          const fileName = `productos/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`;
+          const matches = productForm.imagen.match(/data:([^;]+);/);
+          const mimeType = matches ? matches[1] : 'image/jpeg';
+          const ext = mimeType.split('/')[1] || 'jpg';
+          
+          const blob = new Blob([byteArray], { type: mimeType });
+          const fileName = `productos/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`;
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('productos')
-            .upload(fileName, blob, { contentType: 'image/jpeg' });
+            .upload(fileName, blob, { contentType: mimeType });
 
           if (uploadError) throw uploadError;
 
