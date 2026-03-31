@@ -46,7 +46,7 @@ async function getProductoBySlug(slug: string) {
     .from("productos")
     .select(`*, laboratorio:laboratorios(nombre)`)
     .eq("visible", true)
-    .limit(500);
+    .limit(10000);
 
   if (!productos) return null;
 
