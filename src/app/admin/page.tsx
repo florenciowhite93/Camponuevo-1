@@ -1779,8 +1779,8 @@ export default function AdminPage() {
                   {/* Composición */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Drogas / Principios Activos</label>
-                    <input type="text" value={productForm.drogas} onChange={(e) => setProductForm({...productForm, drogas: e.target.value})}
-                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" placeholder="Ej. Eprinomectina 0,5g, Flumetrina 2g" />
+                    <textarea value={productForm.drogas} onChange={(e) => setProductForm({...productForm, drogas: e.target.value})}
+                      rows={3} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2d5a27] resize-none" placeholder="Escribe cada droga en una línea diferente&#10;Ej.&#10;Eprinomectina 0,5g&#10;Flumetrina 2g" />
                   </div>
 
                   {/* Dosis */}

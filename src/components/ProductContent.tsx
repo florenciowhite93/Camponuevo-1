@@ -396,7 +396,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                       Composición
                     </h4>
                     <ul className="space-y-2 text-gray-700">
-                      {producto.drogas.split(";").map((drug, i) => (
+                      {producto.drogas.split(/[;\n]/).map((drug, i) => (
                         <li key={i} className="flex items-start gap-2">
                           <i className="fas fa-circle text-xs text-[#4caf50] mt-2"></i>
                           <span>{drug.trim()}</span>
