@@ -82,19 +82,67 @@ async function getSubcategorias(producto: Producto): Promise<Subcategoria[]> {
 }
 
 async function getProductosRelacionados(producto: Producto) {
-  const { data } = await supabase
-    .from("productos")
-    .select(`*, laboratorio:laboratorios(nombre)`)
-    .eq("visible", true)
-    .neq("id", producto.id)
-    .limit(4);
+  const resultados: any[] = [];
+  const seenIds = new Set([producto.id]);
+  const limite = 4;
 
-  if (!data) return [];
+  if (producto.subcategorias_ids?.length > 0) {
+    const { data: mismaSubcat } = await supabase
+      .from("productos")
+      .select(`*, laboratorio:laboratorios(nombre)`)
+      .eq("visible", true)
+      .contains("subcategorias_ids", producto.subcategorias_ids)
+      .neq("id", producto.id)
+      .limit(limite);
 
-  return data.map((p: any) => ({
-    ...p,
-    laboratorio_nombre: p.laboratorio?.nombre,
-  }));
+    mismaSubcat?.forEach(p => {
+      resultados.push({ ...p, laboratorio_nombre: p.laboratorio?.nombre });
+      seenIds.add(p.id);
+    });
+  }
+
+  if (resultados.length < limite && producto.drogas) {
+    const { data: candidatos } = await supabase
+      .from("productos")
+      .select(`*, laboratorio:laboratorios(nombre)`)
+      .eq("visible", true)
+      .not("id", "in", `(${Array.from(seenIds).join(',')})`)
+      .limit(20);
+
+    const palabrasClave = producto.drogas
+      .split(/[\n;]/)
+      .map(p => p.trim().toLowerCase())
+      .filter(Boolean);
+
+    const conDrogaSimilar = (candidatos || [])
+      .filter(p => {
+        const pDrogas = (p.drogas || '').toLowerCase();
+        return palabrasClave.some(palabra => 
+          palabra.length > 2 && pDrogas.includes(palabra)
+        );
+      })
+      .slice(0, limite - resultados.length);
+
+    conDrogaSimilar.forEach(p => {
+      resultados.push({ ...p, laboratorio_nombre: p.laboratorio?.nombre });
+      seenIds.add(p.id);
+    });
+  }
+
+  if (resultados.length < limite) {
+    const { data: adicionales } = await supabase
+      .from("productos")
+      .select(`*, laboratorio:laboratorios(nombre)`)
+      .eq("visible", true)
+      .not("id", "in", `(${Array.from(seenIds).join(',')})`)
+      .limit(limite - resultados.length);
+
+    adicionales?.forEach(p => {
+      resultados.push({ ...p, laboratorio_nombre: p.laboratorio?.nombre });
+    });
+  }
+
+  return resultados;
 }
 
 export async function generateMetadata({
