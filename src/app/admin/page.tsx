@@ -135,6 +135,8 @@ export default function AdminPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState("");
+  const [filterLaboratorio, setFilterLaboratorio] = useState("");
+  const [filterVisible, setFilterVisible] = useState<'all' | 'visible' | 'hidden'>('all');
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -854,9 +856,14 @@ export default function AdminPage() {
     }
   };
 
-  const filteredProducts = productos.filter(p => 
-    p.titulo?.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => {
+  const filteredProducts = productos.filter(p => {
+    const matchesSearch = p.titulo?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLaboratorio = !filterLaboratorio || p.laboratorio_id === filterLaboratorio;
+    const matchesVisible = filterVisible === 'all' || 
+      (filterVisible === 'visible' && p.visible) || 
+      (filterVisible === 'hidden' && !p.visible);
+    return matchesSearch && matchesLaboratorio && matchesVisible;
+  }).sort((a, b) => {
     if (!sortField) return 0;
     
     let aVal: any, bVal: any;
@@ -1075,11 +1082,26 @@ export default function AdminPage() {
           {/* PRODUCTOS */}
           {activeView === "productos" && (
             <div>
-              <div className="bg-white rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex-1 relative max-w-md">
-                  <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input type="text" placeholder="Buscar productos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+              <div className="bg-white rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between flex-wrap">
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                  <div className="relative w-full sm:w-64">
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="text" placeholder="Buscar productos..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27]" />
+                  </div>
+                  <select value={filterLaboratorio} onChange={(e) => setFilterLaboratorio(e.target.value)}
+                    className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] text-sm">
+                    <option value="">Todos los laboratorios</option>
+                    {laboratorios.map(lab => (
+                      <option key={lab.id} value={lab.id}>{lab.nombre}</option>
+                    ))}
+                  </select>
+                  <select value={filterVisible} onChange={(e) => setFilterVisible(e.target.value as 'all' | 'visible' | 'hidden')}
+                    className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] text-sm">
+                    <option value="all">Todos</option>
+                    <option value="visible">Visibles</option>
+                    <option value="hidden">No visibles</option>
+                  </select>
                 </div>
                 {selectedProductIds.length > 0 && (
                   <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
