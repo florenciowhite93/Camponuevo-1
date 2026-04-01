@@ -207,7 +207,8 @@ export function Header() {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
-    if (href === "/nosotros#contacto") return pathname === "/nosotros";
+    if (href === "/nosotros") return pathname === "/nosotros";
+    if (href === "/nosotros#contacto") return window.location.hash === "#contacto";
     return pathname === href || pathname.startsWith(href + "/");
   };
 
@@ -250,7 +251,7 @@ export function Header() {
                 href="/"
                 className={cn(
                   "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
-                  isActive("/") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                  isActive("/") && "text-[#2d5a27] border-b-4 border-[#2d5a27]"
                 )}
               >
                 Inicio
@@ -259,7 +260,7 @@ export function Header() {
                 href="/catalogo"
                 className={cn(
                   "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
-                  isActive("/catalogo") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                  isActive("/catalogo") && "text-[#2d5a27] border-b-4 border-[#2d5a27]"
                 )}
               >
                 Catálogo
@@ -274,7 +275,7 @@ export function Header() {
                 }}
                 className={cn(
                   "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
-                  isActive("/nosotros") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                  isActive("/nosotros") && "text-[#2d5a27] border-b-4 border-[#2d5a27]"
                 )}
               >
                 Nosotros
@@ -289,7 +290,7 @@ export function Header() {
                 }}
                 className={cn(
                   "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
-                  isActive("/nosotros#contacto") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                  isActive("/nosotros#contacto") && "text-[#2d5a27] border-b-4 border-[#2d5a27]"
                 )}
               >
                 Contacto
