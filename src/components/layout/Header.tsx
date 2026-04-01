@@ -28,6 +28,7 @@ export function Header() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [currentHash, setCurrentHash] = useState("");
   
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -100,6 +101,10 @@ export function Header() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    setCurrentHash(window.location.hash);
   }, []);
 
   useEffect(() => {
@@ -208,7 +213,7 @@ export function Header() {
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/nosotros") return pathname === "/nosotros";
-    if (href === "/nosotros#contacto") return window.location.hash === "#contacto";
+    if (href === "/nosotros#contacto") return currentHash === "#contacto";
     return pathname === href || pathname.startsWith(href + "/");
   };
 
