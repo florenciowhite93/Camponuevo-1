@@ -24,6 +24,7 @@ export function Header() {
   const [searchResults, setSearchResults] = useState<Producto[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
   const searchRef = useRef<HTMLDivElement>(null);
@@ -87,11 +88,13 @@ export function Header() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      setIsUserLoading(false);
     };
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
+      setIsUserLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -211,9 +214,9 @@ export function Header() {
         )}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-20">
+          <div className="grid grid-cols-3 items-center h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 justify-self-start">
               <div className="w-10 h-10">
                 <svg viewBox="0 0 82.99 82.99" className="w-full h-full">
                   <defs>
@@ -234,7 +237,7 @@ export function Header() {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-8 justify-self-center">
               <Link
                 href="/"
                 className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
@@ -274,7 +277,7 @@ export function Header() {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 justify-self-end">
               {/* Search */}
               <div ref={searchRef} className="relative">
                 <button
@@ -414,7 +417,9 @@ export function Header() {
 
               {/* User Menu */}
               <div ref={userMenuRef} className="relative">
-                {user ? (
+                {isUserLoading ? (
+                  <div className="w-10 h-10"></div>
+                ) : user ? (
                   <>
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -529,7 +534,7 @@ export function Header() {
               >
                 Contacto
               </Link>
-              {user ? (
+              {isUserLoading ? null : user ? (
                 <>
                   <Link
                     href="/cuenta"
@@ -556,7 +561,7 @@ export function Header() {
                     Cerrar Sesión
                   </button>
                 </>
-              ) : (
+              ) : isUserLoading ? null : (
                 <Link
                   href="/login"
                   className="bg-gradient-to-r from-[#2d5a27] to-[#1b5e20] hover:from-[#1b5e20] hover:to-black text-white px-5 py-3 rounded-full font-bold text-center shadow-md flex items-center justify-center gap-2"
