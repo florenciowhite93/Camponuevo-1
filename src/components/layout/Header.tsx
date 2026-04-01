@@ -228,11 +228,10 @@ export function Header() {
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/nosotros") {
-      return pathname === "/nosotros" && !currentHash;
+      return pathname === "/nosotros" && !window.location.hash;
     }
     if (href === "/nosotros#contacto") {
-      const normalizedHash = currentHash.replace(/^#/, '');
-      return pathname === "/nosotros" && normalizedHash === "contacto";
+      return pathname === "/nosotros" && window.location.hash === "#contacto";
     }
     return pathname === href || pathname.startsWith(href + "/");
   };
