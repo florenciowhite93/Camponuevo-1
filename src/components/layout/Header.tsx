@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
@@ -15,6 +16,7 @@ const supabase = createClient();
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { totalItems, toggleCart } = useCarrito();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -203,6 +205,12 @@ export function Header() {
     }).format(price);
   };
 
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    if (href === "/nosotros#contacto") return pathname === "/nosotros";
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
   return (
     <>
       <header
@@ -240,13 +248,19 @@ export function Header() {
             <nav className="hidden md:flex items-center gap-8 justify-self-center">
               <Link
                 href="/"
-                className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
+                className={cn(
+                  "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
+                  isActive("/") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                )}
               >
                 Inicio
               </Link>
               <Link
                 href="/catalogo"
-                className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
+                className={cn(
+                  "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
+                  isActive("/catalogo") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                )}
               >
                 Catálogo
               </Link>
@@ -258,7 +272,10 @@ export function Header() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
-                className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
+                className={cn(
+                  "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
+                  isActive("/nosotros") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                )}
               >
                 Nosotros
               </Link>
@@ -270,7 +287,10 @@ export function Header() {
                     document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className="text-gray-700 hover:text-[#2d5a27] font-medium transition"
+                className={cn(
+                  "text-gray-700 hover:text-[#2d5a27] font-medium transition pb-1",
+                  isActive("/nosotros#contacto") && "text-[#2d5a27] border-b-2 border-[#2d5a27]"
+                )}
               >
                 Contacto
               </Link>
