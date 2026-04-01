@@ -104,7 +104,14 @@ export function Header() {
   }, []);
 
   useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash);
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
     setCurrentHash(window.location.hash);
+    
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   useEffect(() => {
@@ -213,7 +220,10 @@ export function Header() {
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/nosotros") return pathname === "/nosotros";
-    if (href === "/nosotros#contacto") return currentHash === "#contacto";
+    if (href === "/nosotros#contacto") {
+      const normalizedHash = currentHash.replace(/^#/, '');
+      return normalizedHash === "contacto";
+    }
     return pathname === href || pathname.startsWith(href + "/");
   };
 
