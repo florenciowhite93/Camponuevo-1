@@ -219,10 +219,12 @@ export function Header() {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
-    if (href === "/nosotros") return pathname === "/nosotros";
+    if (href === "/nosotros") {
+      return pathname === "/nosotros" && !currentHash;
+    }
     if (href === "/nosotros#contacto") {
       const normalizedHash = currentHash.replace(/^#/, '');
-      return normalizedHash === "contacto";
+      return pathname === "/nosotros" && normalizedHash === "contacto";
     }
     return pathname === href || pathname.startsWith(href + "/");
   };
@@ -300,6 +302,8 @@ export function Header() {
                 onClick={(e) => {
                   if (window.location.pathname === '/nosotros') {
                     e.preventDefault();
+                    history.pushState(null, '', '#contacto');
+                    setCurrentHash('#contacto');
                     document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
