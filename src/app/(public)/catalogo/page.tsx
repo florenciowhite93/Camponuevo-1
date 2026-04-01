@@ -318,7 +318,7 @@ const loadFilteredProducts = async (reset = false) => {
         query = query.order("created_at", { ascending: false });
         const from = 0;
         const to = PAGE_SIZE - 1;
-        const { data, error, count } = await query.range(from, to);
+        const { data, error, count: totalCount } = await query.range(from, to);
 
         if (error) {
           console.error("Error fetching filtered products:", error);
@@ -329,7 +329,7 @@ const loadFilteredProducts = async (reset = false) => {
           ...p,
           laboratorio_nombre: p.laboratorio?.nombre,
         }));
-        count = count || productosConLab.length;
+        count = totalCount || productosConLab.length;
         setAllProductos(productosConLab);
         setDisplayedProductos(productosConLab);
         setTotalCount(count);
