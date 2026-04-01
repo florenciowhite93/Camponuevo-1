@@ -65,9 +65,22 @@ export default function CatalogoPage() {
         setCategorias(catRes.data || []);
         setSubcategorias(subcatRes.data || []);
         
+        const categoria = params.get("categoria");
+        const subcategoria = params.get("subcategoria");
+        
         if (search) {
           setSearchTerm(search);
-        } else {
+        }
+        
+        if (categoria) {
+          setSelectedCategorias(categoria);
+        }
+        
+        if (subcategoria) {
+          setSelectedSubcategorias(subcategoria);
+        }
+        
+        if (!search && !categoria && !subcategoria) {
           fetchInitialData();
         }
       } catch (error) {
@@ -305,7 +318,7 @@ const loadFilteredProducts = async (reset = false) => {
         query = query.order("created_at", { ascending: false });
         const from = 0;
         const to = PAGE_SIZE - 1;
-        const { data, error } = await query.range(from, to);
+        const { data, error, count } = await query.range(from, to);
 
         if (error) {
           console.error("Error fetching filtered products:", error);
@@ -316,7 +329,7 @@ const loadFilteredProducts = async (reset = false) => {
           ...p,
           laboratorio_nombre: p.laboratorio?.nombre,
         }));
-        count = productosConLab.length;
+        count = count || productosConLab.length;
         setAllProductos(productosConLab);
         setDisplayedProductos(productosConLab);
         setTotalCount(count);
