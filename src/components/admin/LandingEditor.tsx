@@ -108,7 +108,6 @@ export function LandingEditor() {
   const [categorias, setCategorias] = useState<CategoriaItem[]>([]);
   const [productosConfig, setProductosConfig] = useState<ProductosConfig>({
     titulo: "Productos Destacados",
-    descripcion: "Los más elegidos por nuestros clientes",
     subcategorias_ids: [],
     productos_ids: [],
     max_productos: 8,
@@ -167,7 +166,6 @@ export function LandingEditor() {
           if (seccion.tipo === "productos" && !newProductosConfig) {
             newProductosConfig = {
               titulo: cfg?.titulo || "Productos Destacados",
-              descripcion: cfg?.descripcion || "Los más elegidos por nuestros clientes",
               subcategorias_ids: cfg?.subcategorias_ids || [],
               productos_ids: cfg?.productos_ids || [],
               max_productos: cfg?.max_productos || 8,
@@ -179,7 +177,6 @@ export function LandingEditor() {
       if (!newProductosConfig) {
         newProductosConfig = {
           titulo: "Productos Destacados",
-          descripcion: "Los más elegidos por nuestros clientes",
           subcategorias_ids: [],
           productos_ids: [],
           max_productos: 8,
