@@ -90,7 +90,6 @@ function SortableProduct({ producto, onRemove }: SortableProductProps) {
 }
 
 export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorProps) {
-  console.log("[SubcategoriaSelector] Rendering with config.productos_ids:", config.productos_ids);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [subcategoriasSinCategoria, setSubcategoriasSinCategoria] = useState<Subcategoria[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -269,14 +268,10 @@ export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorP
   }, [productSearchTerm]);
 
   const addProduct = (product: Producto) => {
-    console.log("[SubcategoriaSelector] addProduct called with:", product.id);
-    console.log("[SubcategoriaSelector] Current config.productos_ids:", config.productos_ids);
-    const newConfig = {
+    onChange({
       ...config,
       productos_ids: [...(config.productos_ids || []), product.id],
-    };
-    console.log("[SubcategoriaSelector] Calling onChange with productos_ids:", newConfig.productos_ids);
-    onChange(newConfig);
+    });
     setProductSearchTerm("");
     setAvailableProducts([]);
   };
