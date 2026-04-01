@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn, createSlug } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { LandingEditor } from "@/components/admin/LandingEditor";
+import { LandingEditorView } from "@/components/admin/LandingEditorView";
 
 const supabase = createClient();
 
@@ -1119,7 +1119,7 @@ export default function AdminPage() {
           )}
 
           {/* LANDING EDITOR */}
-          {activeView === "landing" && <LandingEditor />}
+          {activeView === "landing" && <LandingEditorView />}
 
           {/* PRODUCTOS */}
           {activeView === "productos" && (
