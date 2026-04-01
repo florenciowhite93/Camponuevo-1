@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       titulo: titulo || "Productos Destacados",
       descripcion: "Los más elegidos por nuestros clientes",
       subcategorias_ids: [],
+      productos_ids: [],
       max_productos: 8,
     },
     testimonios: {

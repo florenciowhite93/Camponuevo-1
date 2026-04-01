@@ -47,7 +47,9 @@ export default function HomePage() {
           }
           if (seccion.tipo === "productos") {
             if (cfg?.titulo) setProductosTitulo(cfg.titulo);
-            if (cfg?.subcategorias_ids && cfg.subcategorias_ids.length > 0) {
+            if (cfg?.productos_ids && cfg.productos_ids.length > 0) {
+              fetchProductosPorIds(cfg.productos_ids);
+            } else if (cfg?.subcategorias_ids && cfg.subcategorias_ids.length > 0) {
               fetchProductosPorSubcategoria(cfg.subcategorias_ids);
             } else {
               fetchProductosTodos();
@@ -93,6 +95,25 @@ export default function HomePage() {
         setProductosDestacados(
           data.map((p: any) => ({ ...p, laboratorio_nombre: p.laboratorio?.nombre }))
         );
+      }
+    } catch (error) {
+      console.error("Error fetching productos:", error);
+    }
+  };
+
+  const fetchProductosPorIds = async (productIds: string[]) => {
+    try {
+      const { data } = await supabase
+        .from("productos")
+        .select(`*, laboratorio:laboratorios(nombre)`)
+        .in("id", productIds);
+
+      if (data) {
+        const productMap = new Map(data.map((p: any) => [p.id, { ...p, laboratorio_nombre: p.laboratorio?.nombre }]));
+        const orderedProducts = productIds
+          .map(id => productMap.get(id))
+          .filter(Boolean);
+        setProductosDestacados(orderedProducts);
       }
     } catch (error) {
       console.error("Error fetching productos:", error);
