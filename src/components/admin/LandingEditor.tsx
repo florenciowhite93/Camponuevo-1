@@ -153,6 +153,8 @@ export function LandingEditor() {
         supabase.from("secciones_landing").select("*").in("tipo", ["categorias", "productos"]).order("orden"),
       ]);
 
+      console.log("[loadData] Secciones from DB:", JSON.stringify(seccionesRes.data, null, 2));
+
       let newCategoriasTitulo = "Nuestras Categorías";
       let newCategoriasSeleccionadas: string[] = [];
       let newProductosConfig: ProductosConfig = {
@@ -181,6 +183,8 @@ export function LandingEditor() {
           }
         });
       }
+
+      console.log("[loadData] Setting productosConfig:", JSON.stringify(newProductosConfig, null, 2));
 
       setCategorias(categoriasRes.data || []);
       setCategoriasTitulo(newCategoriasTitulo);
@@ -263,9 +267,8 @@ export function LandingEditor() {
       console.log("=== SAVE CONFIG SUCCESS ===");
       setSaveMessage({ type: "success", text: "Cambios guardados correctamente" });
       
-      setTimeout(async () => {
-        await loadData();
-      }, 500);
+      // Recargar datos después de guardar
+      await loadData();
     } catch (error) {
       console.error("Error saving:", error);
       setSaveMessage({ type: "error", text: `Error al guardar: ${error instanceof Error ? error.message : "Unknown error"}` });
