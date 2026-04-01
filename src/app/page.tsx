@@ -34,9 +34,15 @@ export default function HomePage() {
       }
 
       if (seccionesRes.data) {
-        seccionesRes.data.forEach((seccion) => {
+        let productosProcessed = false;
+        let categoriasProcessed = false;
+        
+        for (const seccion of seccionesRes.data) {
+          if (productosProcessed && categoriasProcessed) break;
+          
           const cfg = seccion.config as any;
-          if (seccion.tipo === "categorias") {
+          if (seccion.tipo === "categorias" && !categoriasProcessed) {
+            categoriasProcessed = true;
             if (cfg?.titulo) setCategoriasTitulo(cfg.titulo);
             if (cfg?.categorias_ids && cfg.categorias_ids.length > 0) {
               const catsSeleccionadas = categoriasRes.data?.filter((c) =>
@@ -45,7 +51,8 @@ export default function HomePage() {
               if (catsSeleccionadas) setCategorias(catsSeleccionadas);
             }
           }
-          if (seccion.tipo === "productos") {
+          if (seccion.tipo === "productos" && !productosProcessed) {
+            productosProcessed = true;
             if (cfg?.titulo) setProductosTitulo(cfg.titulo);
             if (cfg?.productos_ids && cfg.productos_ids.length > 0) {
               fetchProductosPorIds(cfg.productos_ids);
@@ -55,7 +62,7 @@ export default function HomePage() {
               fetchProductosTodos();
             }
           }
-        });
+        }
       } else {
         fetchProductosTodos();
       }
