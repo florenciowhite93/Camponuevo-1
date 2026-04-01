@@ -153,26 +153,39 @@ export function LandingEditor() {
         supabase.from("secciones_landing").select("*").in("tipo", ["categorias", "productos"]).order("orden"),
       ]);
 
-      if (categoriasRes.data) setCategorias(categoriasRes.data);
+      let newCategoriasTitulo = "Nuestras Categorías";
+      let newCategoriasSeleccionadas: string[] = [];
+      let newProductosConfig: ProductosConfig = {
+        titulo: "Productos Destacados",
+        descripcion: "Los más elegidos por nuestros clientes",
+        subcategorias_ids: [],
+        productos_ids: [],
+        max_productos: 8,
+      };
 
       if (seccionesRes.data && seccionesRes.data.length > 0) {
         seccionesRes.data.forEach((seccion) => {
           const cfg = seccion.config as any;
           if (seccion.tipo === "categorias") {
-            setCategoriasTitulo(cfg?.titulo || "Nuestras Categorías");
-            setCategoriasSeleccionadas(cfg?.categorias_ids || []);
+            newCategoriasTitulo = cfg?.titulo || "Nuestras Categorías";
+            newCategoriasSeleccionadas = cfg?.categorias_ids || [];
           }
           if (seccion.tipo === "productos") {
-            setProductosConfig({
+            newProductosConfig = {
               titulo: cfg?.titulo || "Productos Destacados",
               descripcion: cfg?.descripcion || "Los más elegidos por nuestros clientes",
               subcategorias_ids: cfg?.subcategorias_ids || [],
               productos_ids: cfg?.productos_ids || [],
               max_productos: cfg?.max_productos || 8,
-            });
+            };
           }
         });
       }
+
+      setCategorias(categoriasRes.data || []);
+      setCategoriasTitulo(newCategoriasTitulo);
+      setCategoriasSeleccionadas(newCategoriasSeleccionadas);
+      setProductosConfig(newProductosConfig);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -189,48 +202,57 @@ export function LandingEditor() {
     setSaveMessage(null);
 
     try {
+      console.log("=== SAVE CONFIG START ===");
+      console.log("Saving productosConfig:", JSON.stringify(productosConfig, null, 2));
+
       const seccionesRes = await supabase
         .from("secciones_landing")
         .select("id, tipo")
         .in("tipo", ["categorias", "productos"]);
 
-      const existentes = seccionesRes.data || [];
-      const categoriaExistente = existentes.find((s) => s.tipo === "categorias");
-      const productoExistente = existentes.find((s) => s.tipo === "productos");
+      console.log("Secciones found:", seccionesRes.data);
 
-      const now = new Date().toISOString();
-
-      if (categoriaExistente) {
-        const { error } = await supabase
-          .from("secciones_landing")
-          .update({
-            titulo: categoriasTitulo,
-            config: {
-              titulo: categoriasTitulo,
-              descripcion: "Explora nuestra selección de productos",
-              categorias_ids: categoriasSeleccionadas,
-            },
-            updated_at: now,
-          })
-          .eq("id", categoriaExistente.id);
-
-        if (error) throw error;
+      if (seccionesRes.error) {
+        console.error("Error fetching secciones:", seccionesRes.error);
+        throw new Error(seccionesRes.error.message);
       }
 
-      if (productoExistente) {
-        const { error } = await supabase
-          .from("secciones_landing")
-          .update({
-            titulo: productosConfig.titulo,
-            config: productosConfig,
-            updated_at: now,
-          })
-          .eq("id", productoExistente.id);
+      const existentes = seccionesRes.data || [];
+      const productoExistente = existentes.find((s) => s.tipo === "productos");
 
-        if (error) throw error;
+      console.log("Producto existente:", productoExistente);
+
+      if (!productoExistente) {
+        console.warn("No se encontró sección de productos para actualizar");
+        setSaveMessage({ type: "error", text: "No se encontró la sección de productos. Crea una desde el Editor Landing." });
+        setSaving(false);
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const updateData = {
+        titulo: productosConfig.titulo,
+        config: productosConfig,
+        updated_at: now,
+      };
+
+      console.log("Updating with data:", JSON.stringify(updateData, null, 2));
+
+      const { data, error } = await supabase
+        .from("secciones_landing")
+        .update(updateData)
+        .eq("id", productoExistente.id)
+        .select();
+
+      console.log("Update result - data:", data, "error:", error);
+
+      if (error) {
+        console.error("Error updating productos section:", error);
+        throw error;
       }
 
       if (Object.keys(ordenesActualizados).length > 0) {
+        console.log("Updating category orders:", ordenesActualizados);
         const updates = Object.entries(ordenesActualizados).map(([id, orden]) =>
           supabase.from("categorias").update({ orden }).eq("id", id)
         );
@@ -238,11 +260,15 @@ export function LandingEditor() {
         setOrdenesActualizados({});
       }
 
+      console.log("=== SAVE CONFIG SUCCESS ===");
       setSaveMessage({ type: "success", text: "Cambios guardados correctamente" });
-      await loadData();
+      
+      setTimeout(async () => {
+        await loadData();
+      }, 500);
     } catch (error) {
       console.error("Error saving:", error);
-      setSaveMessage({ type: "error", text: "Error al guardar los cambios" });
+      setSaveMessage({ type: "error", text: `Error al guardar: ${error instanceof Error ? error.message : "Unknown error"}` });
     } finally {
       setSaving(false);
     }
