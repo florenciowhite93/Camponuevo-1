@@ -90,6 +90,7 @@ function SortableProduct({ producto, onRemove }: SortableProductProps) {
 }
 
 export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorProps) {
+  console.log("[SubcategoriaSelector] Rendering with config.productos_ids:", config.productos_ids);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [subcategoriasSinCategoria, setSubcategoriasSinCategoria] = useState<Subcategoria[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -159,15 +160,18 @@ export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorP
     loadSelectedProducts();
   }, [loadSelectedProducts]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIndex = selectedProductIds.indexOf(active.id as string);
-      const newIndex = selectedProductIds.indexOf(over.id as string);
-      const newOrder = arrayMove(selectedProductIds, oldIndex, newIndex);
-      onChange({ ...config, productos_ids: newOrder });
+      const currentIds = config.productos_ids || [];
+      const oldIndex = currentIds.indexOf(active.id as string);
+      const newIndex = currentIds.indexOf(over.id as string);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(currentIds, oldIndex, newIndex);
+        onChange({ ...config, productos_ids: newOrder });
+      }
     }
-  };
+  }, [config, onChange]);
 
   const toggleExpand = (categoriaId: string) => {
     setExpandedCategories((prev) =>
@@ -265,10 +269,14 @@ export function SubcategoriaSelector({ config, onChange }: SubcategoriaSelectorP
   }, [productSearchTerm]);
 
   const addProduct = (product: Producto) => {
-    onChange({
+    console.log("[SubcategoriaSelector] addProduct called with:", product.id);
+    console.log("[SubcategoriaSelector] Current config.productos_ids:", config.productos_ids);
+    const newConfig = {
       ...config,
-      productos_ids: [...selectedProductIds, product.id],
-    });
+      productos_ids: [...(config.productos_ids || []), product.id],
+    };
+    console.log("[SubcategoriaSelector] Calling onChange with productos_ids:", newConfig.productos_ids);
+    onChange(newConfig);
     setProductSearchTerm("");
     setAvailableProducts([]);
   };
