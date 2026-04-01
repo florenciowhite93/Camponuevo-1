@@ -228,10 +228,10 @@ export function Header() {
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     if (href === "/nosotros") {
-      return pathname === "/nosotros" && !window.location.hash;
+      return pathname === "/nosotros" && (typeof window === 'undefined' || !window.location.hash);
     }
     if (href === "/nosotros#contacto") {
-      return pathname === "/nosotros" && window.location.hash === "#contacto";
+      return pathname === "/nosotros" && typeof window !== 'undefined' && window.location.hash === "#contacto";
     }
     return pathname === href || pathname.startsWith(href + "/");
   };
