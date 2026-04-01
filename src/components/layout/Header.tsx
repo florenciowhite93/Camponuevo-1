@@ -108,10 +108,18 @@ export function Header() {
       setCurrentHash(window.location.hash);
     };
     
+    const handlePopState = () => {
+      setCurrentHash(window.location.hash);
+    };
+    
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handlePopState);
     setCurrentHash(window.location.hash);
     
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   useEffect(() => {
@@ -287,6 +295,8 @@ export function Header() {
                 onClick={(e) => {
                   if (window.location.pathname === '/nosotros') {
                     e.preventDefault();
+                    history.pushState(null, '', '/nosotros');
+                    setCurrentHash('');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
