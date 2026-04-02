@@ -20,9 +20,11 @@ export function toSentenceCase(text: string): string {
   if (!text) return text;
 
   const PLACEHOLDER = "<<<NEWLINE>>>";
-  const withPlaceholders = text.replace(/[\r\n]+/g, PLACEHOLDER);
+  const processedText = text
+    .replace(/<<<newline>>>/gi, PLACEHOLDER)
+    .replace(/[\r\n]+/g, PLACEHOLDER);
 
-  return withPlaceholders
+  return processedText
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => {
       const trimmed = sentence.trim();
