@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { cn, createSlug } from "@/lib/utils";
+import { cn, createSlug, toSentenceCase } from "@/lib/utils";
 import type { Producto, Especie } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -136,7 +136,7 @@ export function ProductCard({ producto, className, showAddToCart = true }: Produ
 
         {producto.descripcion && (
           <p className="text-sm text-gray-500 mb-4 line-clamp-2">
-            {producto.descripcion}
+            {toSentenceCase(producto.descripcion)}
           </p>
         )}
         
