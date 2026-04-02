@@ -154,6 +154,8 @@ export function Header() {
         p.titulo || "",
         p.laboratorio_nombre || "",
         p.descripcion || "",
+        p.dosis || "",
+        p.indicaciones || "",
         p.drogas || "",
       ].join(" ").toLowerCase();
       return searchText.includes(query);

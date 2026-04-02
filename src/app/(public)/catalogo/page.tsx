@@ -268,7 +268,7 @@ const loadFilteredProducts = async (reset = false) => {
         if (labs && labs.length > 0) {
           labIds = labs.map(l => l.id);
         }
-        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%${labIds.length > 0 ? `,laboratorio_id.in.(${labIds.join(',')})` : ''}`);
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,dosis.ilike.%${searchTerm}%,indicaciones.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%${labIds.length > 0 ? `,laboratorio_id.in.(${labIds.join(',')})` : ''}`);
       }
       if (selectedLabs) {
         query = query.eq("laboratorio_id", selectedLabs);
@@ -373,7 +373,7 @@ const loadFilteredProducts = async (reset = false) => {
         if (labs && labs.length > 0) {
           labIds = labs.map(l => l.id);
         }
-        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%${labIds.length > 0 ? `,laboratorio_id.in.(${labIds.join(',')})` : ''}`);
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,dosis.ilike.%${searchTerm}%,indicaciones.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%${labIds.length > 0 ? `,laboratorio_id.in.(${labIds.join(',')})` : ''}`);
       }
       if (selectedLabs) {
         query = query.eq("laboratorio_id", selectedLabs);
