@@ -8,7 +8,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ShoppingCart, ChevronDown, ExternalLink, Minus, Plus, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, toSentenceCase } from "@/lib/utils";
 import type { Producto } from "@/types";
 
 const WHATSAPP_NUMBER = "1144096789";
@@ -318,7 +318,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                         Descripción
                       </h3>
                       <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                        {producto.descripcion}
+                        {toSentenceCase(producto.descripcion)}
                       </p>
                     </div>
                   </div>
@@ -386,7 +386,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                       <i className="fas fa-clipboard-list mr-2 text-[#2d5a27]"></i>
                       Indicaciones
                     </h4>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{producto.indicaciones}</p>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{toSentenceCase(producto.indicaciones)}</p>
                   </div>
                 )});
                 if (producto.drogas) fields.push({ key: 'dro', content: (
@@ -399,7 +399,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                       {producto.drogas.split(/[;\n]/).map((drug, i) => (
                         <li key={i} className="flex items-start gap-2">
                           <i className="fas fa-circle text-xs text-[#4caf50] mt-2"></i>
-                          <span>{drug.trim()}</span>
+                          <span>{toSentenceCase(drug.trim())}</span>
                         </li>
                       ))}
                     </ul>
@@ -411,7 +411,7 @@ export function ProductContent({ producto, etiquetas, subcategorias, productosRe
                       <i className="fas fa-syringe mr-2 text-[#2d5a27]"></i>
                       Dosis y Administración
                     </h4>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{producto.dosis}</p>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{toSentenceCase(producto.dosis)}</p>
                   </div>
                 )});
                 const cols = fields.length === 2 ? 'md:grid-cols-2' : fields.length === 3 ? 'md:grid-cols-3' : 'grid-cols-1';
