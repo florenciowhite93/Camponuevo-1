@@ -259,8 +259,16 @@ const loadFilteredProducts = async (reset = false) => {
         .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
         .eq("visible", true);
 
+      let labIds: string[] = [];
       if (searchTerm) {
-        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%`);
+        const { data: labs } = await supabase
+          .from('laboratorios')
+          .select('id')
+          .ilike('nombre', `%${searchTerm}%`);
+        if (labs && labs.length > 0) {
+          labIds = labs.map(l => l.id);
+        }
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%${labIds.length > 0 ? `,laboratorio_id.in.(${labIds.join(',')})` : ''}`);
       }
       if (selectedLabs) {
         query = query.eq("laboratorio_id", selectedLabs);
@@ -356,8 +364,16 @@ const loadFilteredProducts = async (reset = false) => {
         .select(`*, laboratorio:laboratorios(nombre)`, { count: 'exact' })
         .eq("visible", true);
 
+      let labIds: string[] = [];
       if (searchTerm) {
-        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%`);
+        const { data: labs } = await supabase
+          .from('laboratorios')
+          .select('id')
+          .ilike('nombre', `%${searchTerm}%`);
+        if (labs && labs.length > 0) {
+          labIds = labs.map(l => l.id);
+        }
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%${labIds.length > 0 ? `,laboratorio_id.in.(${labIds.join(',')})` : ''}`);
       }
       if (selectedLabs) {
         query = query.eq("laboratorio_id", selectedLabs);
