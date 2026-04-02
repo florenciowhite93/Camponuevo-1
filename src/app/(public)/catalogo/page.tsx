@@ -260,7 +260,7 @@ const loadFilteredProducts = async (reset = false) => {
         .eq("visible", true);
 
       if (searchTerm) {
-        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%,laboratorio.nombre.ilike.%${searchTerm}%`);
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%`);
       }
       if (selectedLabs) {
         query = query.eq("laboratorio_id", selectedLabs);
@@ -357,7 +357,7 @@ const loadFilteredProducts = async (reset = false) => {
         .eq("visible", true);
 
       if (searchTerm) {
-        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%,laboratorio.nombre.ilike.%${searchTerm}%`);
+        query = query.or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,drogas.ilike.%${searchTerm}%`);
       }
       if (selectedLabs) {
         query = query.eq("laboratorio_id", selectedLabs);
