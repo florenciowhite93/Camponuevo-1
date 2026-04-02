@@ -19,19 +19,17 @@ export function createSlug(text: string): string {
 export function toSentenceCase(text: string): string {
   if (!text) return text;
 
-  const PLACEHOLDER = "<<<NEWLINE>>>";
+  const withBreaks = text
+    .replace(/\s*<<<newline>>>\s*/gi, "\n")
+    .replace(/[\r\n]+/g, "\n");
 
-  const normalized = text
-    .replace(/\s*<<<newline>>>\s*/gi, PLACEHOLDER)
-    .replace(/[\r\n]+/g, PLACEHOLDER);
-
-  return normalized
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => {
-      const trimmed = sentence.trim();
-      if (!trimmed) return sentence;
+  return withBreaks
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return "";
       return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
     })
-    .join(" ")
-    .replace(new RegExp(PLACEHOLDER, "g"), "\n");
+    .filter((line) => line !== "")
+    .join("\n");
 }
