@@ -20,7 +20,7 @@ export function toSentenceCase(text: string): string {
   if (!text) return text;
 
   const PLACEHOLDER = "<<<NEWLINE>>>";
-  const withPlaceholders = text.replace(/\n/g, PLACEHOLDER);
+  const withPlaceholders = text.replace(/[\r\n]+/g, PLACEHOLDER);
 
   return withPlaceholders
     .split(/(?<=[.!?])\s+/)
