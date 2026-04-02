@@ -18,12 +18,17 @@ export function createSlug(text: string): string {
 
 export function toSentenceCase(text: string): string {
   if (!text) return text;
-  return text
+
+  const PLACEHOLDER = "<<<NEWLINE>>>";
+  const withPlaceholders = text.replace(/\n/g, PLACEHOLDER);
+
+  return withPlaceholders
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => {
       const trimmed = sentence.trim();
       if (!trimmed) return sentence;
       return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
     })
-    .join(" ");
+    .join(" ")
+    .replace(new RegExp(PLACEHOLDER, "g"), "\n");
 }
