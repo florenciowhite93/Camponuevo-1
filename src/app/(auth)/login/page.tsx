@@ -52,7 +52,12 @@ function LoginContent() {
           setError(authError.message);
         }
       } else if (data.user) {
-        router.push("/cuenta");
+        const redirectTo = searchParams.get("redirect");
+        if (redirectTo && redirectTo.startsWith("/")) {
+          router.push(redirectTo);
+        } else {
+          router.push("/cuenta");
+        }
       }
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");
