@@ -99,32 +99,55 @@ interface CarritoContextType {
 }
 
 const IVA_RATE = 0.21;
+const MAX_CANTIDAD = 99;
 
 const CarritoContext = createContext<CarritoContextType | undefined>(undefined);
+
+function sanitizeCartItems(items: unknown): CarritoItem[] {
+  if (!Array.isArray(items)) return [];
+  
+  return items
+    .filter((item): item is CarritoItem => {
+      return (
+        item !== null &&
+        typeof item === 'object' &&
+        typeof item.producto === 'object' &&
+        item.producto !== null &&
+        typeof item.producto.id === 'string' &&
+        typeof item.cantidad === 'number' &&
+        item.cantidad > 0
+      );
+    })
+    .map((item) => ({
+      producto: item.producto,
+      cantidad: Math.min(Math.max(1, item.cantidad), MAX_CANTIDAD),
+    }));
+}
 
 export function CarritoProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(carritoReducer, initialState);
 
-  // Cargar carrito desde localStorage al iniciar
   useEffect(() => {
     const saved = localStorage.getItem("camponuevo_cart");
     if (saved) {
       try {
-        const items = JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        const items = sanitizeCartItems(parsed);
         dispatch({ type: "LOAD_CART", items });
       } catch (e) {
         console.error("Error loading cart:", e);
+        localStorage.removeItem("camponuevo_cart");
       }
     }
   }, []);
 
-  // Guardar carrito en localStorage cuando cambia
   useEffect(() => {
     localStorage.setItem("camponuevo_cart", JSON.stringify(state.items));
   }, [state.items]);
 
   const addItem = (producto: Producto, cantidad?: number) => {
-    dispatch({ type: "ADD_ITEM", producto, cantidad });
+    const safeCantidad = Math.min(cantidad || 1, MAX_CANTIDAD);
+    dispatch({ type: "ADD_ITEM", producto, cantidad: safeCantidad });
     dispatch({ type: "OPEN_CART" });
   };
 
@@ -133,7 +156,8 @@ export function CarritoProvider({ children }: { children: ReactNode }) {
   };
 
   const updateCantidad = (productoId: string, cantidad: number) => {
-    dispatch({ type: "UPDATE_CANTIDAD", productoId, cantidad });
+    const safeCantidad = Math.min(Math.max(0, cantidad), MAX_CANTIDAD);
+    dispatch({ type: "UPDATE_CANTIDAD", productoId, cantidad: safeCantidad });
   };
 
   const clearCart = () => {

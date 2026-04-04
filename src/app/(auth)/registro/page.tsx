@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, User, Mail, Lock, Phone, ArrowLeft, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { registroSchema } from "@/lib/schemas";
 
 const supabase = createClient();
 
@@ -27,18 +28,14 @@ export default function RegistroPage() {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
     if (!acceptedTerms) {
       setError("Debés aceptar los términos y condiciones");
+      return;
+    }
+
+    const result = registroSchema.safeParse(formData);
+    if (!result.success) {
+      setError(result.error.issues[0].message);
       return;
     }
 
@@ -74,7 +71,10 @@ export default function RegistroPage() {
   };
 
   const passwordRequirements = [
-    { met: formData.password.length >= 6, text: "Al menos 6 caracteres" },
+    { met: formData.password.length >= 8, text: "Al menos 8 caracteres" },
+    { met: /[A-Z]/.test(formData.password), text: "Una mayúscula" },
+    { met: /[a-z]/.test(formData.password), text: "Una minúscula" },
+    { met: /[0-9]/.test(formData.password), text: "Un número" },
   ];
 
   return (
@@ -213,6 +213,21 @@ export default function RegistroPage() {
                   className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2d5a27] focus:border-transparent"
                   placeholder="••••••••"
                 />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {passwordRequirements.map((req, idx) => (
+                  <span
+                    key={idx}
+                    className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+                      req.met
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {req.met ? <Check size={12} /> : <Lock size={12} />}
+                    {req.text}
+                  </span>
+                ))}
               </div>
             </div>
 

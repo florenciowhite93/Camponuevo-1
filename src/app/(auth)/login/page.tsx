@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, ArrowLeft, Send, Check, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { loginSchema } from "@/lib/schemas";
+import { logAuditEvent } from "@/lib/audit";
 
 const supabase = createClient();
 
@@ -33,10 +35,17 @@ function LoginContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
     setEmailNotConfirmed(false);
     setEmailConfirmed(false);
+
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      setError(result.error.issues[0].message);
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({
@@ -45,6 +54,7 @@ function LoginContent() {
       });
 
       if (authError) {
+        await logAuditEvent({ action: 'LOGIN_FAILED', user_email: email });
         if (authError.message === "Email not confirmed") {
           setEmailNotConfirmed(true);
           setError("");
@@ -52,6 +62,7 @@ function LoginContent() {
           setError(authError.message);
         }
       } else if (data.user) {
+        await logAuditEvent({ action: 'LOGIN', user_email: email, user_id: data.user.id });
         const redirectTo = searchParams.get("redirect");
         if (redirectTo && redirectTo.startsWith("/")) {
           router.push(redirectTo);

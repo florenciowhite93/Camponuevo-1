@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { sendEmailSafe, ADMIN_EMAIL } from "@/lib/email-actions";
 import { OrderConfirmationEmail } from "@/emails/OrderConfirmationEmail";
 import { AdminNewOrderEmail } from "@/emails/AdminNewOrderEmail";
+import { checkoutSchema } from "@/lib/schemas";
 
 const supabase = createClient();
 
@@ -119,6 +120,15 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (envioOption === "envio") {
+      const result = checkoutSchema.safeParse(formData);
+      if (!result.success) {
+        alert(result.error.issues[0].message);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {

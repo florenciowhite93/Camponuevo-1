@@ -11,6 +11,7 @@ import {
 import { cn, createSlug } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { LandingEditor } from "@/components/admin/LandingEditor";
+import { productoSchema } from "@/lib/schemas";
 
 const supabase = createClient();
 
@@ -274,6 +275,12 @@ export default function AdminPage() {
   };
 
   const handleSaveProduct = async () => {
+    const result = productoSchema.safeParse(productForm);
+    if (!result.success) {
+      alert(result.error.issues[0].message);
+      return;
+    }
+
     setIsSaving(true);
     setSaveSuccess(false);
     try {
