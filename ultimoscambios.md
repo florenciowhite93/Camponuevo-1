@@ -24,7 +24,7 @@
 
 #### Implementación:
 - 5 intentos máximos en ventana de 15 minutos
-- Rutas protegidas: `/login`, `/registro`, `/checkout`
+- Solo aplica a POST requests (intentos de login/registro/checkout)
 - Retorna 429 con mensaje claro y header `Retry-After: 900`
 
 #### Rutas limitadas:
@@ -60,6 +60,112 @@ Para obtener tu UUID:
 ```sql
 SELECT id, email FROM auth.users ORDER BY created_at DESC LIMIT 5;
 ```
+
+---
+
+## FASE 2 Seguridad Implementada - 04 de Abril 2026
+
+### 1. Validación de Inputs con Zod
+
+#### Archivos creados:
+- `src/lib/schemas.ts` - Esquemas de validación
+
+#### Archivos modificados:
+- `src/app/(auth)/login/page.tsx` - Validación de email/password
+- `src/app/(auth)/registro/page.tsx` - Validación completa con requisitos de contraseña
+- `src/app/checkout/page.tsx` - Validación de dirección
+- `src/app/admin/page.tsx` - Validación de productos
+
+#### Esquemas implementados:
+- `registroSchema`: nombre (solo letras), email, password (8+ chars, mayúscula, minúscula, número)
+- `loginSchema`: email válido, password requerido
+- `checkoutSchema`: nombre, email, teléfono, provincia, ciudad, dirección, código postal
+- `productoSchema`: título, precio, URL validada
+
+#### Validación visual en registro:
+- Muestra indicadores de requisitos de contraseña
+- Check verde cuando se cumple cada requisito
+
+### 2. ADMIN_EMAIL en Variable de Entorno
+
+#### Archivos verificados:
+- `.env.local` - `ADMIN_EMAIL=florenciowite93@gmail.com`
+- `.env.example` - Documentación de variables
+- `src/lib/email.ts` - Lee de `process.env.ADMIN_EMAIL`
+
+### 3. Logs de Auditoría
+
+#### Archivos creados:
+- `supabase/audit_log.sql` - Tabla, triggers y funciones SQL
+- `src/lib/audit.ts` - Helper para registrar eventos desde frontend
+
+#### Tabla audit_log:
+- Registra: table_name, action, record_id, old_data, new_data, user_id, user_email, ip_address, user_agent, created_at
+
+#### Triggers configurados:
+- `audit_productos` - UPDATE/DELETE en productos
+- `audit_pedidos` - UPDATE en pedidos
+- `audit_perfiles` - UPDATE en perfiles
+
+#### Eventos registrados desde frontend:
+- LOGIN exitoso
+- LOGIN_FAILED (fallido)
+
+#### Pasos post-deploy:
+```sql
+-- Ejecutar: supabase/audit_log.sql
+```
+
+### 4. Seguridad del Carrito
+
+#### Archivos modificados:
+- `src/context/CarritoContext.tsx`
+
+#### Mejoras implementadas:
+- Validación de estructura al leer de localStorage
+- Filtrado de items inválidos o corruptos
+- Cantidad máxima limitada a 99 por item
+- Sanitización de datos en addItem y updateCantidad
+
+---
+
+## Fix Redirección Login - 04 de Abril 2026
+
+### Redirigir a URL original después de login
+
+#### Archivos modificados:
+- `src/app/(auth)/login/page.tsx`
+
+#### Implementación:
+- Lee parámetro `redirect` de la URL
+- Después de login exitoso, redirige a la URL original
+- Ejemplo: `/admin` → `/login?redirect=/admin` → `/admin` (después de login)
+
+#### Seguridad:
+- Solo acepta rutas internas (que empiezan con `/`)
+- Previene redirect a URLs externas
+
+---
+
+## Fix Loading State Admin - 04 de Abril 2026
+
+### Loader al guardar productos en admin
+
+#### Archivos modificados:
+- `src/app/admin/page.tsx`
+
+#### Implementación:
+- Nuevo estado `isSaving` para el proceso completo
+- Nuevo estado `saveSuccess` para mensaje de éxito
+- Botón muestra spinner + texto durante guardado
+- Botón muestra "¡Guardado!" con checkmark por 1.5 segundos
+- Alert en caso de error
+
+#### Estados del botón:
+- "Guardar Producto" (normal)
+- "Subiendo imagen..." (con spinner)
+- "Guardando..." (con spinner)
+- "¡Guardado!" (con checkmark)
 
 ---
 
@@ -296,6 +402,12 @@ git push
 
 ## Pendientes / Mejoras Futuras
 
+### Seguridad - FASE 3
+1. [ ] Implementar CAPTCHA en login/registro
+2. [ ] Agregar npm audit en CI/CD
+3. [ ] Configurar CSP headers en next.config.ts
+
+### Funcionalidades
 1. [ ] Verificar dominio @camponuevo.com.ar en Resend para emails profesionales
 2. [ ] Crear página de cambio de contraseña (`/cuenta/cambiar-contrasena`)
 3. [ ] Email de bienvenida al registrarse
@@ -305,4 +417,15 @@ git push
 7. [ ] Notificaciones push/web
 8. [ ] Paginación en catálogo de productos
 9. [ ] Filtros avanzados en catálogo
-10. [ ] Configurar variable RESEND_API_KEY en Vercel Dashboard
+10. [x] Configurar variable RESEND_API_KEY en Vercel Dashboard
+
+### Seguridad - FASE 1 ✅
+1. [x] Middleware protección admin a nivel servidor
+2. [x] Rate limiting en login/registro/checkout
+3. [x] Corregir políticas RLS con migrate_add_is_admin.sql
+
+### Seguridad - FASE 2 ✅
+1. [x] Validación de inputs con Zod
+2. [x] ADMIN_EMAIL en variable de entorno
+3. [x] Logs de auditoría (audit_log.sql)
+4. [x] Seguridad del carrito (sanitización, límite cantidad)
