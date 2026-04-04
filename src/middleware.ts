@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
   const sensitivePaths = ['/login', '/registro', '/checkout'];
   const isSensitivePath = sensitivePaths.some(p => path.startsWith(p));
 
-  if (isSensitivePath) {
+  if (isSensitivePath && request.method === 'POST') {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                request.headers.get('x-real-ip') ||
                'unknown';
