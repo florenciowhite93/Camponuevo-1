@@ -109,6 +109,8 @@ export default function AdminPage() {
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Forms
   const [productForm, setProductForm] = useState({
@@ -272,6 +274,8 @@ export default function AdminPage() {
   };
 
   const handleSaveProduct = async () => {
+    setIsSaving(true);
+    setSaveSuccess(false);
     try {
       let finalImageUrl = productForm.imagen;
       const isBase64 = productForm.imagen && productForm.imagen.startsWith('data:');
@@ -338,9 +342,16 @@ export default function AdminPage() {
         await supabase.from("productos").insert(productData);
       }
       await fetchAllData();
-      setShowProductModal(false);
+      setSaveSuccess(true);
+      setTimeout(() => {
+        setShowProductModal(false);
+        setSaveSuccess(false);
+      }, 1500);
     } catch (error) {
       console.error("Error saving product:", error);
+      alert("Error al guardar el producto");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1948,8 +1959,25 @@ export default function AdminPage() {
             </div>
             <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
               <button onClick={() => setShowProductModal(false)} className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition">Cancelar</button>
-              <button onClick={handleSaveProduct} disabled={isUploadingImage} className="px-5 py-2.5 bg-[#2d5a27] hover:bg-[#1b5e20] disabled:bg-gray-400 text-white rounded-lg font-medium transition shadow-lg">
-                {isUploadingImage ? 'Subiendo imagen...' : 'Guardar Producto'}
+              <button onClick={handleSaveProduct} disabled={isUploadingImage || isSaving} className="px-5 py-2.5 bg-[#2d5a27] hover:bg-[#1b5e20] disabled:bg-gray-400 text-white rounded-lg font-medium transition shadow-lg flex items-center gap-2">
+                {isUploadingImage ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    Subiendo imagen...
+                  </>
+                ) : saveSuccess ? (
+                  <>
+                    <i className="fas fa-check"></i>
+                    ¡Guardado!
+                  </>
+                ) : isSaving ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i>
+                    Guardando...
+                  </>
+                ) : (
+                  'Guardar Producto'
+                )}
               </button>
             </div>
           </div>
