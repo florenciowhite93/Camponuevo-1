@@ -1,5 +1,68 @@
 # Últimos Cambios - Camponuevo 1
 
+## Fecha: 04 de Abril de 2026
+
+---
+
+## FASE 1 Seguridad Implementada - 04 de Abril 2026
+
+### 1. Middleware de Protección Admin
+
+#### Archivos creados:
+- `src/middleware.ts` - Proxy (middleware) de protección
+
+#### Implementación:
+- Verificación de autenticación a nivel servidor para `/admin/*`
+- Redirección a `/login?redirect=/admin` si no hay usuario
+- Verificación de `is_admin` en tabla perfiles
+- Redirección a `/?error=unauthorized` si no es admin
+
+#### Rutas protegidas:
+- `/admin/*` - Requiere autenticación + rol admin
+
+### 2. Rate Limiting Implementado
+
+#### Implementación:
+- 5 intentos máximos en ventana de 15 minutos
+- Rutas protegidas: `/login`, `/registro`, `/checkout`
+- Retorna 429 con mensaje claro y header `Retry-After: 900`
+
+#### Rutas limitadas:
+- `/login` - 5 intentos / 15 min
+- `/registro` - 5 intentos / 15 min
+- `/checkout` - 5 intentos / 15 min
+
+### 3. Script de Migración RLS
+
+#### Archivos creados:
+- `supabase/migrate_add_is_admin.sql` - Script SQL completo
+
+#### Contenido:
+- Agrega columna `is_admin BOOLEAN DEFAULT false` a `perfiles`
+- Elimina políticas conflictivas basadas en "Service role"
+- Crea función helper `is_admin()` para RLS
+- Crea políticas RLS correctas para productos, pedidos y perfiles
+
+### 4. Pasos Post-Deploy - IMPORTANTE
+
+**Debes ejecutar en Supabase SQL Editor:**
+
+```sql
+-- Ejecutar el contenido de supabase/migrate_add_is_admin.sql
+
+-- Luego, asignar admin a tu usuario (reemplazar UUID):
+UPDATE public.perfiles 
+SET is_admin = true 
+WHERE id = 'TU_USER_UUID';
+```
+
+Para obtener tu UUID:
+```sql
+SELECT id, email FROM auth.users ORDER BY created_at DESC LIMIT 5;
+```
+
+---
+
 ## Fecha: 24 de Marzo de 2026
 
 ---
